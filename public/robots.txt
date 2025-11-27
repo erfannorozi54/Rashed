@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Sitemap: https://rashed-math.ir/sitemap.xml
+
+# Disallow admin and API routes
+Disallow: /api/
+Disallow: /dashboard/
+
+# Allow search engines to crawl public pages
+Allow: /
+Allow: /blogs
+Allow: /auth/login
+Allow: /auth/register
