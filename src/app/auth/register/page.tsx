@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { OtpInput } from "@/components/ui/OtpInput";
@@ -51,75 +52,6 @@ const FEATURES = [
     { icon: Trophy, text: "مشاهده تکالیف و نمرات در لحظه" },
     { icon: CalendarDays, text: "تقویم فارسی با برنامه هفتگی" },
 ];
-
-// ─── decorative SVG illustration ───────────────────────────────────────────
-
-function MathIllustration() {
-    return (
-        <svg
-            viewBox="0 0 320 320"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-full h-full drop-shadow-2xl"
-            aria-hidden="true"
-        >
-            {/* Outer dashed ring */}
-            <circle
-                cx="160" cy="160" r="145"
-                stroke="rgba(255,255,255,0.10)"
-                strokeWidth="1.5"
-                strokeDasharray="6 6"
-            />
-            {/* Inner solid ring */}
-            <circle
-                cx="160" cy="160" r="108"
-                stroke="rgba(255,255,255,0.18)"
-                strokeWidth="1.5"
-            />
-            {/* Parabola */}
-            <path
-                d="M 40 235 Q 160 55 280 235"
-                stroke="rgba(255,255,255,0.30)"
-                strokeWidth="2"
-            />
-            {/* Golden triangle */}
-            <polygon
-                points="160,72 242,212 78,212"
-                stroke="rgba(251,191,36,0.65)"
-                strokeWidth="2.5"
-                strokeLinejoin="round"
-                fill="rgba(251,191,36,0.07)"
-            />
-            {/* Axis cross inside */}
-            <line x1="160" y1="100" x2="160" y2="268" stroke="rgba(255,255,255,0.12)" strokeWidth="1" strokeDasharray="4 4" />
-            <line x1="55"  y1="185" x2="265" y2="185" stroke="rgba(255,255,255,0.12)" strokeWidth="1" strokeDasharray="4 4" />
-
-            {/* π */}
-            <text x="124" y="182" fontSize="58" fontFamily="Georgia,serif" fill="rgba(255,255,255,0.92)" fontWeight="bold">π</text>
-            {/* ∫ */}
-            <text x="65"  y="162" fontSize="46" fontFamily="Georgia,serif" fill="rgba(251,191,36,0.88)" fontStyle="italic">∫</text>
-            {/* Σ */}
-            <text x="218" y="220" fontSize="36" fontFamily="Georgia,serif" fill="rgba(255,255,255,0.78)">Σ</text>
-            {/* √x */}
-            <text x="212" y="140" fontSize="22" fontFamily="Georgia,serif" fill="rgba(251,191,36,0.80)">√x</text>
-            {/* f(x) */}
-            <text x="60"  y="248" fontSize="14" fontFamily="monospace" fill="rgba(255,255,255,0.45)" fontStyle="italic">f(x) = ax²+bx+c</text>
-
-            {/* Accent dots */}
-            <circle cx="128" cy="88"  r="5" fill="rgba(251,191,36,0.85)" />
-            <circle cx="248" cy="118" r="4" fill="rgba(255,255,255,0.55)" />
-            <circle cx="68"  cy="198" r="6" fill="rgba(251,191,36,0.55)" />
-            <circle cx="268" cy="252" r="4" fill="rgba(255,255,255,0.40)" />
-            <circle cx="188" cy="275" r="5" fill="rgba(251,191,36,0.65)" />
-
-            {/* Graduation cap */}
-            <polygon points="160,270 133,285 187,285" fill="rgba(251,191,36,0.92)" />
-            <rect x="133" y="285" width="54" height="7" rx="3.5" fill="rgba(251,191,36,0.85)" />
-            <rect x="184" y="278" width="2.5" height="16" rx="1" fill="rgba(251,191,36,0.75)" />
-            <circle cx="185.25" cy="296" r="4" fill="rgba(251,191,36,0.95)" />
-        </svg>
-    );
-}
 
 // ─── step bubble ────────────────────────────────────────────────────────────
 
@@ -276,9 +208,17 @@ export default function RegisterPage() {
                         </span>
                     </div>
 
-                    {/* illustration — swap src to /images/auth/register-illustration.png once ready */}
-                    <div className="w-64 h-64 mx-auto mb-10">
-                        <MathIllustration />
+                    {/* illustration */}
+                    <div className="w-72 mx-auto mb-10">
+                        <Image
+                            src="/images/auth/register-illustration.webp"
+                            alt="تصویر ثبت‌نام"
+                            width={400}
+                            height={260}
+                            className="w-full h-auto"
+                            style={{ mixBlendMode: "multiply" }}
+                            priority
+                        />
                     </div>
 
                     {/* tagline */}
