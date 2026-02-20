@@ -78,3 +78,88 @@ export async function POST(request: NextRequest) {
         );
     }
 }
+
+// GET fetch sessions for current user
+export async function GET(request: NextRequest) {
+    try {
+        const session = await getServerSession(authOptions);
+
+        if (!session) {
+            return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 401 });
+        }
+
+        const { searchParams } = new URL(request.url);
+        const type = searchParams.get("type"); // upcoming, past, or all
+
+        let whereClause: any = {};
+
+        // If student, only show sessions for enrolled classes
+        if (session.user.role === "STUDENT") {
+            const enrollments = await prisma.classEnrollment.findMany({
+                where: {
+                    studentId: session.user.id,
+                },
+                select: {
+                    classId: true,
+                },
+            });
+
+            const classIds = enrollments.map((e) => e.classId);
+            whereClause.classId = { in: classIds };
+        } else if (session.user.role === "TEACHER") {
+            // If teacher, show sessions for taught classes
+            const teaching = await prisma.classTeacher.findMany({
+                where: {
+                    teacherId: session.user.id,
+                },
+                select: {
+                    classId: true,
+                },
+            });
+
+            const classIds = teaching.map((t) => t.classId);
+            whereClause.classId = { in: classIds };
+        }
+
+        // Filter by date based on type or range
+        const now = new Date();
+        const startDate = searchParams.get("startDate");
+        const endDate = searchParams.get("endDate");
+
+        if (startDate && endDate) {
+            whereClause.date = {
+                gte: new Date(startDate),
+                lte: new Date(endDate),
+            };
+        } else if (type === "upcoming") {
+            whereClause.date = { gte: now };
+        } else if (type === "past") {
+            whereClause.date = { lt: now };
+        }
+
+        const sessions = await prisma.session.findMany({
+            where: whereClause,
+            include: {
+                class: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+            },
+            orderBy: {
+                date: "asc",
+            },
+            // Remove take limit if fetching by range (calendar view)
+            take: (startDate && endDate) ? undefined : 20,
+        });
+
+        return NextResponse.json({ sessions }, { status: 200 });
+    } catch (error) {
+        console.error("Get sessions error:", error);
+        return NextResponse.json(
+            { error: "خطا در دریافت جلسات" },
+            { status: 500 }
+        );
+    }
+}

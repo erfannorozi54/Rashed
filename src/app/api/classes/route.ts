@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { name, description } = body;
+        const { name, description, scheduledSessions } = body;
 
         if (!name) {
             return NextResponse.json(
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Create class with the creator as a teacher
+        // Create class with the creator as a teacher and optional scheduled sessions
         const newClass = await prisma.class.create({
             data: {
                 name,
@@ -139,6 +139,14 @@ export async function POST(request: NextRequest) {
                         teacherId: session.user.id,
                     },
                 },
+                sessions: scheduledSessions && scheduledSessions.length > 0 ? {
+                    create: scheduledSessions.map((s: any) => ({
+                        title: s.title,
+                        description: s.description,
+                        date: new Date(s.date),
+                        type: "SCHEDULED"
+                    }))
+                } : undefined
             },
             include: {
                 teachers: {
@@ -151,6 +159,7 @@ export async function POST(request: NextRequest) {
                         },
                     },
                 },
+                sessions: true,
             },
         });
 

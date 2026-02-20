@@ -18,7 +18,12 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
         }
 
+        // Get role filter from query params
+        const { searchParams } = new URL(request.url);
+        const roleFilter = searchParams.get("role");
+
         const users = await prisma.user.findMany({
+            where: roleFilter ? { role: roleFilter as Role } : undefined,
             select: {
                 id: true,
                 firstName: true,

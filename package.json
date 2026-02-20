@@ -16,6 +16,7 @@
     "clsx": "^2.1.1",
     "katex": "^0.16.25",
     "lucide-react": "^0.555.0",
+    "moment-jalaali": "^0.10.4",
     "next": "16.0.4",
     "next-auth": "^4.24.13",
     "pg": "^8.16.3",
@@ -30,6 +31,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
+    "@types/moment-jalaali": "^0.7.9",
     "@types/node": "^20",
     "@types/pg": "^8.15.6",
     "@types/react": "^19",

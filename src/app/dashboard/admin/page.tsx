@@ -86,18 +86,110 @@ export default function AdminDashboard() {
             <main className="container mx-auto px-4 py-8">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
-                        مدیریت کاربران
+                        داشبورد مدیریت
                     </h1>
                     <p className="text-[var(--muted-foreground)]">
-                        مشاهده و تغییر نقش کاربران سیستم
+                        مشاهده و مدیریت کاربران، کلاس‌ها و جلسات
                     </p>
                 </div>
 
+                {/* Navigation Cards */}
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+                    <Link href="/dashboard/admin/students">
+                        <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Users className="h-5 w-5 text-[var(--primary-600)]" />
+                                    دانش‌آموزان
+                                </CardTitle>
+                                <CardDescription>
+                                    مشاهده و مدیریت دانش‌آموزان
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-3xl font-bold text-[var(--primary-600)]">
+                                    {users.filter(u => u.role === "STUDENT").length}
+                                </div>
+                                <p className="text-sm text-[var(--muted-foreground)]">
+                                    دانش‌آموز ثبت‌نام شده
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+
+                    <Link href="/dashboard/admin/teachers">
+                        <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <GraduationCap className="h-5 w-5 text-[var(--secondary-600)]" />
+                                    معلمان
+                                </CardTitle>
+                                <CardDescription>
+                                    مشاهده و مدیریت معلمان
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-3xl font-bold text-[var(--secondary-600)]">
+                                    {users.filter(u => u.role === "TEACHER").length}
+                                </div>
+                                <p className="text-sm text-[var(--muted-foreground)]">
+                                    معلم فعال
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+
+                    <Link href="/dashboard/admin/admins">
+                        <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Users className="h-5 w-5 text-red-600" />
+                                    مدیران
+                                </CardTitle>
+                                <CardDescription>
+                                    مشاهده لیست مدیران
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-3xl font-bold text-red-600">
+                                    {users.filter(u => u.role === "ADMIN").length}
+                                </div>
+                                <p className="text-sm text-[var(--muted-foreground)]">
+                                    مدیر سیستم
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+
+                    <Link href="/dashboard/admin/classes">
+                        <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <GraduationCap className="h-5 w-5 text-green-600" />
+                                    کلاس‌ها
+                                </CardTitle>
+                                <CardDescription>
+                                    مشاهده و مدیریت کلاس‌ها
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-3xl font-bold text-green-600">
+                                    -
+                                </div>
+                                <p className="text-sm text-[var(--muted-foreground)]">
+                                    کلاس فعال
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                </div>
+
+                {/* All Users Table */}
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Users className="h-5 w-5" />
-                            لیست کاربران ({users.length})
+                            همه کاربران ({users.length})
                         </CardTitle>
                         <CardDescription>
                             تمامی کاربران ثبت‌نام شده در سیستم

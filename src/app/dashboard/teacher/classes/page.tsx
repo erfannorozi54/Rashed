@@ -72,6 +72,12 @@ export default function TeacherClassesPage() {
                         لیست کلاس‌هایی که تدریس می‌کنید
                     </p>
                 </div>
+                <Link href="/dashboard/teacher/classes/create">
+                    <Button>
+                        <PlusCircle className="h-4 w-4 ml-2" />
+                        ایجاد کلاس جدید
+                    </Button>
+                </Link>
             </div>
 
             {loading ? (

@@ -52,11 +52,13 @@ export async function GET(
                                 dueDate: true,
                             },
                         },
-                        attendances: {
-                            where: {
-                                studentId: session.user.id,
+                        attendances: session.user.role === "ADMIN"
+                            ? true
+                            : {
+                                where: {
+                                    studentId: session.user.id,
+                                },
                             },
-                        },
                     },
                     orderBy: {
                         date: "desc",
@@ -88,23 +90,71 @@ export async function GET(
             );
         }
 
+        // For admin: calculate attendance stats for each student
+        let formattedStudents;
+        if (isAdmin) {
+            formattedStudents = classData.students.map((enrollment) => {
+                const studentAttendances = classData.sessions.flatMap((session) =>
+                    session.attendances.filter((att) => att.studentId === enrollment.student.id)
+                );
+
+                const totalSessions = classData.sessions.length;
+                const presentCount = studentAttendances.filter((att) => att.status === "PRESENT").length;
+                const absentCount = studentAttendances.filter((att) => att.status === "ABSENT").length;
+                const attendanceRate = totalSessions > 0 ? Math.round((presentCount / totalSessions) * 100) : 0;
+
+                return {
+                    ...enrollment.student,
+                    statistics: {
+                        totalSessions,
+                        presentCount,
+                        absentCount,
+                        attendanceRate,
+                    },
+                };
+            });
+        } else {
+            formattedStudents = classData.students.map((s) => ({
+                ...s.student,
+                enrolledAt: s.enrolledAt,
+            }));
+        }
+
         // Separate past and upcoming sessions
         const now = new Date();
         const pastSessions = classData.sessions.filter((s) => s.date < now);
         const upcomingSessions = classData.sessions.filter((s) => s.date >= now);
+
+        // For admin: include attendance count in sessions
+        const formattedSessions = isAdmin
+            ? classData.sessions.map((session) => ({
+                id: session.id,
+                title: session.title,
+                description: session.description,
+                date: session.date,
+                createdAt: session.createdAt,
+                attendanceCount: {
+                    total: classData.students.length,
+                    present: session.attendances.filter((att) => att.status === "PRESENT").length,
+                    absent: session.attendances.filter((att) => att.status === "ABSENT").length,
+                },
+                contents: session.contents,
+                assignments: session.assignments,
+            }))
+            : [...pastSessions, ...upcomingSessions];
 
         const response = {
             id: classData.id,
             name: classData.name,
             description: classData.description,
             teachers: classData.teachers.map((t) => t.teacher),
-            students: classData.students.map((s) => ({
-                ...s.student,
-                enrolledAt: s.enrolledAt,
-            })),
-            pastSessions,
-            upcomingSessions,
-            totalSessions: classData.sessions.length,
+            students: formattedStudents,
+            sessions: formattedSessions,
+            ...(!isAdmin && {
+                pastSessions,
+                upcomingSessions,
+                totalSessions: classData.sessions.length,
+            }),
             createdAt: classData.createdAt,
         };
 
