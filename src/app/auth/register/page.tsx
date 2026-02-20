@@ -196,20 +196,20 @@ export default function RegisterPage() {
                 <div className="absolute top-1/2 left-1/3 w-56 h-56 bg-[var(--primary-400)] rounded-full mix-blend-multiply opacity-15 animate-blob animation-delay-4000" />
 
                 {/* content */}
-                <div className="relative z-10 text-white px-8 py-12 w-full">
+                <div className="relative z-10 text-white w-full flex flex-col items-center px-10 py-12">
                     {/* logo */}
-                    <div className="flex items-center gap-3 mb-12">
-                        <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center backdrop-blur-sm">
-                            <GraduationCap className="w-7 h-7 text-[var(--secondary-300)]" />
+                    <div className="flex items-center justify-center gap-3 mb-8 w-full">
+                        <div className="w-11 h-11 rounded-2xl bg-white/15 flex items-center justify-center backdrop-blur-sm shrink-0">
+                            <GraduationCap className="w-6 h-6 text-[var(--secondary-300)]" />
                         </div>
-                        <span className="text-2xl font-bold leading-tight">
-                            موسسه ریاضی<br />
+                        <span className="text-xl font-bold leading-tight text-right">
+                            موسسه ریاضی{" "}
                             <span className="text-[var(--secondary-300)]">راشد</span>
                         </span>
                     </div>
 
                     {/* illustration */}
-                    <div className="-mx-8 mb-8">
+                    <div className="w-4/5 mb-6">
                         <Image
                             src="/images/auth/register-illustration.webp"
                             alt="تصویر ثبت‌نام"
@@ -221,18 +221,18 @@ export default function RegisterPage() {
                     </div>
 
                     {/* tagline */}
-                    <h2 className="text-2xl font-bold mb-2 leading-snug">
-                        یاد بگیر، راشد کن،<br />موفق شو
+                    <h2 className="text-2xl font-bold mb-2 text-center leading-snug">
+                        یاد بگیر، راشد کن، موفق شو
                     </h2>
-                    <p className="text-[var(--primary-200)] text-sm leading-relaxed mb-10">
+                    <p className="text-[var(--primary-200)] text-sm text-center leading-relaxed mb-8">
                         با ثبت‌نام در موسسه ریاضی راشد به دنیای یادگیری حرفه‌ای قدم بگذارید
                     </p>
 
                     {/* feature list */}
-                    <div className="space-y-4">
+                    <div className="space-y-3 w-full max-w-xs">
                         {FEATURES.map((f, i) => (
                             <div key={i} className="flex items-center gap-3">
-                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/15 flex items-center justify-center">
+                                <div className="shrink-0 w-8 h-8 rounded-full bg-white/15 flex items-center justify-center">
                                     <f.icon className="w-4 h-4 text-[var(--secondary-300)]" />
                                 </div>
                                 <span className="text-sm text-[var(--primary-100)]">{f.text}</span>
