@@ -196,7 +196,7 @@ export default function RegisterPage() {
                 <div className="absolute top-1/2 left-1/3 w-56 h-56 bg-[var(--primary-400)] rounded-full mix-blend-multiply opacity-15 animate-blob animation-delay-4000" />
 
                 {/* content */}
-                <div className="relative z-10 text-white px-12 py-16 max-w-sm w-full">
+                <div className="relative z-10 text-white px-8 py-12 w-full">
                     {/* logo */}
                     <div className="flex items-center gap-3 mb-12">
                         <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center backdrop-blur-sm">
@@ -209,14 +209,13 @@ export default function RegisterPage() {
                     </div>
 
                     {/* illustration */}
-                    <div className="w-full mx-auto mb-8">
+                    <div className="-mx-8 mb-8">
                         <Image
                             src="/images/auth/register-illustration.webp"
                             alt="تصویر ثبت‌نام"
                             width={600}
                             height={390}
-                            className="w-full h-auto"
-                            style={{ mixBlendMode: "multiply" }}
+                            className="w-full h-auto mix-blend-multiply"
                             priority
                         />
                     </div>
