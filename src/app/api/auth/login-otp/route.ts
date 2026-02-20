@@ -48,12 +48,12 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Clear OTP after successful validation
+        // Mark OTP as verified — NextAuth authorize will consume this marker within 30 seconds
         await prisma.user.update({
             where: { phone },
             data: {
-                otp: null,
-                otpExpiresAt: null,
+                otp: "VERIFIED",
+                otpExpiresAt: new Date(Date.now() + 30 * 1000),
                 otpAttempts: 0,
             },
         });

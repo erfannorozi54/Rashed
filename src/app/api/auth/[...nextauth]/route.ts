@@ -24,6 +24,30 @@ export const authOptions: NextAuthOptions = {
                     throw new Error("کاربری با این شماره تلفن یافت نشد");
                 }
 
+                // OTP login path: consume the verified marker set by /api/auth/login-otp
+                if (credentials.password === "OTP_LOGIN") {
+                    if (
+                        user.otp !== "VERIFIED" ||
+                        !user.otpExpiresAt ||
+                        new Date() > user.otpExpiresAt
+                    ) {
+                        throw new Error("کد تایید نامعتبر است. دوباره تلاش کنید");
+                    }
+
+                    await prisma.user.update({
+                        where: { phone: credentials.phone },
+                        data: { otp: null, otpExpiresAt: null, otpAttempts: 0 },
+                    });
+
+                    return {
+                        id: user.id,
+                        email: user.email || user.phone,
+                        name: user.name,
+                        role: user.role,
+                    };
+                }
+
+                // Password login path
                 if (!user.password) {
                     throw new Error("لطفاً از روش ورود با کد یکبار مصرف استفاده کنید");
                 }

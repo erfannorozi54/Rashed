@@ -11,28 +11,36 @@ export class OTPService {
         return new Date(Date.now() + 5 * 60 * 1000);
     }
 
-    // Mock SMS sending - prints OTP to console
+    // Send OTP via external SMS service configured via SMS_BASE_URL
     static async sendSMS(phone: string, otp: string): Promise<boolean> {
-        console.log("\n" + "=".repeat(50));
-        console.log("📱 MOCK SMS SERVICE");
-        console.log("=".repeat(50));
-        console.log(`Phone: ${phone}`);
-        console.log(`OTP Code: ${otp}`);
-        console.log(`Expires: ${this.getOTPExpiration().toLocaleString("fa-IR")}`);
-        console.log("=".repeat(50) + "\n");
+        const smsBaseUrl = process.env.SMS_BASE_URL;
 
-        // Simulate API call delay
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        if (!smsBaseUrl) {
+            console.error("SMS_BASE_URL is not configured in environment variables");
+            return false;
+        }
 
-        // In production, replace this with actual SMS API call:
-        // const response = await fetch('YOUR_SMS_API_URL', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ phone, message: `کد تایید شما: ${otp}` })
-        // });
-        // return response.ok;
+        const message = `کد تایید شما: ${otp}`;
 
-        return true; // Mock success
+        try {
+            const response = await fetch(smsBaseUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ phone, message }),
+            });
+
+            if (!response.ok) {
+                console.error(
+                    `SMS service returned ${response.status}: ${await response.text()}`
+                );
+                return false;
+            }
+
+            return true;
+        } catch (error) {
+            console.error("Failed to reach SMS service:", error);
+            return false;
+        }
     }
 
     // Validate OTP

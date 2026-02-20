@@ -89,6 +89,29 @@ Path alias: `@/*` → `src/*`
 
 ---
 
+## Project Consistency
+
+**Before writing any code, read the existing similar files to understand and match the established patterns.**
+
+### Structure & Files
+- New API routes follow `src/app/api/[resource]/route.ts` and `src/app/api/[resource]/[id]/route.ts`
+- New pages go under `src/app/dashboard/[role]/` matching the admin/teacher/student structure
+- New shared components go in `src/components/ui/`; feature-specific components go in `src/components/`
+
+### API & Data Fetching
+- API handlers use the same auth pattern: get session via `getServerSession`, check role, return `NextResponse.json()`
+- Client pages fetch data directly in the component using `useEffect` + `fetch`, or as a server component — match what the surrounding pages do
+- Error and loading states must be handled consistently with existing pages
+
+### UI Components
+- **Always reuse existing components** from `src/components/ui/` (Button, Card, Input, Label, Textarea, PersianDatePicker, PersianCalendar)
+- **If a needed component doesn't exist**, build it as a reusable component in `src/components/ui/` and use it everywhere — never write one-off inline UI for something that will appear more than once
+- Match the visual style, spacing, and layout of existing dashboard pages for the same role
+- Use `SessionTypeBadge` for session types, `DashboardHeader` for page headers, `MarkdownRenderer` for any markdown content
+- Use `jalali-utils.ts` for all date formatting and logic — never use raw `Date` methods for display
+
+---
+
 ## Styling & Architecture Rules
 
 - **Tailwind utility-first only** — no custom CSS/SCSS, no `@apply`
