@@ -5,76 +5,54 @@ Create each image and place it at the specified path.
 
 ---
 
-## 1. Registration Page Illustration
+## 1. Login Page Illustration
 
-**File path:** `public/images/auth/register-illustration.png`
+**File path:** `public/images/auth/login-illustration.webp`
 
-**Usage:** Left decorative panel of the registration page (`/auth/register`).
-Displayed at ~260×260 px on a deep purple gradient background
-(`#4c1d95` → `#6d28d9` → `#7c3aed`).
+**Usage:** Left decorative panel of the login page (`/auth/login`).
+Displayed at ~80% of the panel width on a deep purple gradient background
+(`#4c1d95` → `#6d28d9` → `#7c3aed`). Same panel layout as the registration page.
 
-**Dimensions:** 600 × 600 px (square, will be scaled down)
+**Dimensions:** 1200 × 780 px (wide landscape, same ratio as the registration illustration)
 
-**Format:** PNG with **transparent background**
+**Format:** WebP (preferred) or PNG — **white background is fine**, the page applies `mix-blend-multiply` to blend it into the purple panel
 
-**Style:** Modern flat vector illustration — clean, minimal, elegant.
-Similar aesthetic to [undraw.co](https://undraw.co) but math-focused.
+**Style:** Modern flat paper-cut illustration — same aesthetic and quality as the registration page illustration. Clean layered depth with subtle drop shadows on elements.
 
 **Content:**
-- A stylized student character (gender-neutral, simple silhouette)
-  sitting at a small desk or floating in study pose
-- Around the character, artistically placed math elements:
-  - Formula cards or speech bubbles containing: `∫`, `Σ`, `π`, `x²`, `√x`, `f(x)=ax²`
-  - A small open book or notebook
-  - A triangle ruler and/or compass
-  - A parabola / sine wave curve floating in the background
-  - Tiny floating dots and stars as accents
-- Optional: small graduation cap above or near the character
+- A stylized student or person character (gender-neutral silhouette, same lavender/light purple tone as the registration illustration) in a confident, welcoming pose — e.g. standing and reaching forward, or sitting at a laptop/phone
+- The character is interacting with a glowing screen or a floating login card/portal
+- Around the character, elements that suggest **secure access and identity**:
+  - A large stylized key or a glowing shield with a checkmark inside (the central metaphor)
+  - A padlock — open or mid-unlock — rendered cleanly in the same flat paper-cut style
+  - Floating math formula bubbles (same speech-bubble cards as the registration image): `∫`, `π`, `x²` — fewer than the registration image, just 2–3 to maintain brand continuity
+  - A floating OTP / verification code panel: a small card showing `_ _ _ _ _ _` (six dashes or boxes) to hint at the OTP login feature
+  - Small sparkles, dots, and star accents in gold (#fbbf24) scattered around
+- Background curves: a subtle sine wave or smooth arc passing behind the character (same style as the registration image's wave curves)
 
-**Color palette** (must match the site's design system):
-| Element          | Color                        |
-|------------------|------------------------------|
-| Main character   | White `#ffffff` or very light purple |
-| Math symbols     | White `#ffffff` (primary) and Gold `#fbbf24` (accent) |
-| Book / notebook  | White `#ffffff` with subtle shadow |
-| Curves / shapes  | White `#ffffff` at 40–70% opacity |
-| Accent dots      | Gold `#fbbf24` / `#f59e0b`  |
-| Shadows          | Deep purple `#4c1d95` at low opacity |
+**Color palette** (must exactly match the registration illustration and site design system):
+| Element                  | Color                                          |
+|--------------------------|------------------------------------------------|
+| Character silhouette     | Light lavender `#c4b5fd` / `#ddd6fe`          |
+| Key / shield / padlock   | White `#ffffff` with lavender shadow           |
+| Formula speech bubbles   | White `#ffffff` cards with dark purple text    |
+| OTP card                 | White `#ffffff` card, boxes in light purple    |
+| Background curves        | Medium purple `#7c3aed` at 30–50% opacity      |
+| Gold accent sparkles     | `#fbbf24` / `#f59e0b`                         |
+| Orange accent dots       | `#fb923c` (small, sparingly)                  |
+| Shadows / depth          | Soft lavender `#a78bfa` at low opacity         |
+
+**Mood:** Trustworthy, secure, welcoming. The image should feel like "you are safe here, come in."
 
 **Do NOT use:**
-- Solid dark backgrounds (image must have transparent bg)
-- Bright reds, greens, or blues not in the palette
 - Photorealistic style
-- Text in the image
-
-**How to replace the inline SVG:**
-Once the image is created and placed at the path above, open
-`src/app/auth/register/page.tsx`, find the `<MathIllustration />` component
-inside the left panel, and replace it with:
-
-```tsx
-<Image
-    src="/images/auth/register-illustration.png"
-    alt="تصویر ثبت‌نام"
-    width={260}
-    height={260}
-    className="object-contain drop-shadow-2xl"
-    priority
-/>
-```
+- Bright greens or reds
+- Heavy dark outlines — keep the line work light and soft
+- Cluttered composition — simpler than the registration image is fine
 
 ---
 
-## 2. (Future) Login Page Illustration
-
-**File path:** `public/images/auth/login-illustration.png`
-
-Same style and palette as above. Content: a key or lock being unlocked,
-combined with math elements, suggesting "access to knowledge."
-
----
-
-## 3. (Future) Home Page Hero Image
+## 2. (Future) Home Page Hero Image
 
 **File path:** `public/images/home/hero.png`
 
