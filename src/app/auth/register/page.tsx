@@ -204,17 +204,17 @@ export default function RegisterPage() {
                         </div>
                         <span className="text-2xl font-bold leading-tight">
                             موسسه ریاضی<br />
-                            <span className="text-[var(--secondary-300)]">رشد</span>
+                            <span className="text-[var(--secondary-300)]">راشد</span>
                         </span>
                     </div>
 
                     {/* illustration */}
-                    <div className="w-72 mx-auto mb-10">
+                    <div className="w-full mx-auto mb-8">
                         <Image
                             src="/images/auth/register-illustration.webp"
                             alt="تصویر ثبت‌نام"
-                            width={400}
-                            height={260}
+                            width={600}
+                            height={390}
                             className="w-full h-auto"
                             style={{ mixBlendMode: "multiply" }}
                             priority
@@ -223,10 +223,10 @@ export default function RegisterPage() {
 
                     {/* tagline */}
                     <h2 className="text-2xl font-bold mb-2 leading-snug">
-                        یاد بگیر، رشد کن،<br />موفق شو
+                        یاد بگیر، راشد کن،<br />موفق شو
                     </h2>
                     <p className="text-[var(--primary-200)] text-sm leading-relaxed mb-10">
-                        با ثبت‌نام در موسسه ریاضی رشد به دنیای یادگیری حرفه‌ای قدم بگذارید
+                        با ثبت‌نام در موسسه ریاضی راشد به دنیای یادگیری حرفه‌ای قدم بگذارید
                     </p>
 
                     {/* feature list */}
@@ -250,7 +250,7 @@ export default function RegisterPage() {
                     <div className="lg:hidden text-center mb-8">
                         <Link href="/" className="inline-flex items-center gap-2">
                             <GraduationCap className="h-9 w-9 text-[var(--primary-600)]" />
-                            <span className="text-xl font-bold">موسسه ریاضی رشد</span>
+                            <span className="text-xl font-bold">موسسه ریاضی راشد</span>
                         </Link>
                     </div>
 
