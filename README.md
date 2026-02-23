@@ -80,20 +80,7 @@ Wait ~10 seconds for Postgres to be healthy.
 
 ---
 
-### Step 5 — Apply database migrations
-
-```bash
-ssh your-vps "
-for f in /var/www/rashed/prisma/migrations/*/migration.sql; do
-  echo \"Applying: \$f\"
-  docker exec -i rashed_postgres psql -U postgres -d rashed_db < \"\$f\"
-done
-"
-```
-
----
-
-### Step 6 — Build and start the app
+### Step 5 — Build and start the app
 
 ```bash
 ssh your-vps "cd /var/www/rashed && docker compose build app && docker compose up -d app"
@@ -106,8 +93,12 @@ ssh your-vps "docker compose -f /var/www/rashed/docker-compose.yml logs app"
 
 You should see:
 ```
-✓ Ready in 337ms
+No pending migrations to apply.
+🌱  The seed command has been executed.
+✓ Starting...
 ```
+
+> Migrations and seed run automatically on every container start — no manual steps needed.
 
 ---
 
@@ -185,13 +176,21 @@ rsync -avz --exclude='.git' --exclude='node_modules' --exclude='.next' --exclude
 
 # 2. Rebuild and restart
 ssh your-vps "cd /var/www/rashed && docker compose down app && docker compose build app && docker compose up -d app"
-
-# 3. If there are new migrations (new files in prisma/migrations/)
-ssh your-vps "
-for f in /var/www/rashed/prisma/migrations/*/migration.sql; do
-  docker exec -i rashed_postgres psql -U postgres -d rashed_db < \"\$f\"
-done
-"
 ```
 
+> Migrations and seed run automatically on startup — no extra steps needed even when there are new migrations.
+
 > Postgres data is stored in a named Docker volume (`rashed_postgres_data`) so it persists across container restarts and rebuilds.
+
+---
+
+## Prisma Studio (Database UI)
+
+To inspect the database via UI from your local browser:
+
+```bash
+ssh -L 5555:127.0.0.1:5555 your-vps \
+  "docker exec rashed_app ./node_modules/.bin/prisma studio --port 5555 --browser none"
+```
+
+Then open `http://localhost:5555`. The SSH tunnel keeps it secure — port 5555 is not exposed to the internet.
