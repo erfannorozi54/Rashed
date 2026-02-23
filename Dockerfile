@@ -1,10 +1,10 @@
-FROM node:20-alpine
+FROM node:24-alpine
 
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci && npm install prisma@7 @prisma/client@7 @prisma/adapter-pg@7
 
 COPY . .
 
@@ -17,4 +17,5 @@ ENV PORT=3001
 ENV HOSTNAME="0.0.0.0"
 ENV NODE_ENV=production
 
-CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && ./node_modules/.bin/tsx prisma/seed.ts && npm start"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && ./node_modules/.bin/prisma db seed && npm start"]
+
