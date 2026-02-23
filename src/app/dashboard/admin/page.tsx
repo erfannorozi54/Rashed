@@ -5,7 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { GraduationCap, LogOut, Users } from "lucide-react";
+import { GraduationCap, LogOut, Users, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 
@@ -179,6 +179,21 @@ export default function AdminDashboard() {
                                 <p className="text-sm text-[var(--muted-foreground)]">
                                     کلاس فعال
                                 </p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+
+                    <Link href="/dashboard/admin/refunds">
+                        <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <RefreshCw className="h-5 w-5 text-amber-600" />
+                                    استردادها
+                                </CardTitle>
+                                <CardDescription>مدیریت درخواست‌های استرداد</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-[var(--muted-foreground)]">مشاهده و بررسی</p>
                             </CardContent>
                         </Card>
                     </Link>

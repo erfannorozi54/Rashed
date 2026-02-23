@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
@@ -20,6 +21,7 @@ import {
 import Script from "next/script";
 
 export default function HomePage() {
+  const { data: session, status } = useSession();
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -147,22 +149,34 @@ export default function HomePage() {
 
               {/* CTA Buttons */}
               <div className="flex flex-wrap justify-center lg:justify-start gap-4 mb-10">
-                <Link href="/auth/register">
-                  <Button
-                    size="lg"
-                    className="text-base px-8 shadow-xl shadow-[var(--primary-600)]/30 hover:shadow-2xl hover:shadow-[var(--primary-600)]/40 transition-all duration-300"
-                  >
-                    شروع یادگیری
-                    <ArrowLeft className="h-5 w-5 mr-2" />
-                  </Button>
-                </Link>
-                <Link href="/blogs">
+                {status === "authenticated" ? (
+                  <Link href="/dashboard">
+                    <Button
+                      size="lg"
+                      className="text-base px-8 shadow-xl shadow-[var(--primary-600)]/30 hover:shadow-2xl hover:shadow-[var(--primary-600)]/40 transition-all duration-300"
+                    >
+                      رفتن به داشبورد
+                      <ArrowLeft className="h-5 w-5 mr-2" />
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href="/auth/register">
+                    <Button
+                      size="lg"
+                      className="text-base px-8 shadow-xl shadow-[var(--primary-600)]/30 hover:shadow-2xl hover:shadow-[var(--primary-600)]/40 transition-all duration-300"
+                    >
+                      شروع یادگیری
+                      <ArrowLeft className="h-5 w-5 mr-2" />
+                    </Button>
+                  </Link>
+                )}
+                <Link href="/classes">
                   <Button
                     size="lg"
                     variant="outline"
                     className="text-base px-8 border-2 bg-white/50 backdrop-blur-sm hover:bg-white/80"
                   >
-                    مشاهده بلاگ
+                    مشاهده کلاسها
                   </Button>
                 </Link>
               </div>
@@ -248,16 +262,33 @@ export default function HomePage() {
                     بلاگ
                   </Button>
                 </Link>
-                <Link href="/auth/login">
-                  <Button variant="ghost" className="text-sm">
-                    ورود
-                  </Button>
-                </Link>
-                <Link href="/auth/register">
-                  <Button className="text-sm shadow-lg shadow-[var(--primary-600)]/25">
-                    ثبت‌نام رایگان
-                  </Button>
-                </Link>
+                {status === "loading" ? (
+                  <div className="w-24 h-9 rounded-lg bg-gray-100 animate-pulse" />
+                ) : status === "authenticated" ? (
+                  <>
+                    <span className="hidden sm:block text-sm text-[var(--muted-foreground)] font-medium">
+                      {session.user?.name}
+                    </span>
+                    <Link href="/dashboard">
+                      <Button className="text-sm shadow-lg shadow-[var(--primary-600)]/25">
+                        داشبورد
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/auth/login">
+                      <Button variant="ghost" className="text-sm">
+                        ورود
+                      </Button>
+                    </Link>
+                    <Link href="/auth/register">
+                      <Button className="text-sm shadow-lg shadow-[var(--primary-600)]/25">
+                        ثبت‌نام رایگان
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

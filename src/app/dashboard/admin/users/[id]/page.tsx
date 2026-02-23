@@ -5,9 +5,9 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { User, BookOpen, Calendar, TrendingUp, ArrowLeft, CheckCircle, XCircle, FileText } from "lucide-react";
-import Link from "next/link";
+import { User, BookOpen, Calendar, TrendingUp, CheckCircle, XCircle, FileText, CreditCard } from "lucide-react";
 import DashboardHeader from "@/components/layout/DashboardHeader";
+import { Input } from "@/components/ui/Input";
 
 interface Teacher {
     id: string;
@@ -45,6 +45,7 @@ interface UserData {
         phone: string;
         email: string | null;
         role: string;
+        maxDebtLimit: number;
         createdAt: string;
     };
     enrolledClasses: ClassStats[];
@@ -115,21 +116,6 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         <div className="min-h-screen bg-[var(--muted)]">
             <DashboardHeader title="جزئیات کاربر" />
 
-            {/* Back Button Sub-header */}
-            <div className="bg-white border-b border-[var(--border)]">
-                <div className="container mx-auto px-4 py-4">
-                    <div className="flex items-center justify-between">
-                        <h1 className="text-2xl font-bold">جزئیات کاربر</h1>
-                        <Link href="/dashboard/admin">
-                            <Button variant="outline">
-                                <ArrowLeft className="h-4 w-4 ml-2" />
-                                بازگشت
-                            </Button>
-                        </Link>
-                    </div>
-                </div>
-            </div>
-
             <main className="container mx-auto px-4 py-8">
                 {/* User Info */}
                 <Card className="mb-6">
@@ -177,6 +163,47 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* Debt Limit — Students only */}
+                {user.role === "STUDENT" && (
+                    <Card className="mb-6">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <CreditCard className="h-5 w-5" />
+                                سقف بدهی
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-end gap-3">
+                                <div className="space-y-1">
+                                    <p className="text-sm text-[var(--muted-foreground)]">حداکثر بدهی مجاز (تومان)</p>
+                                    <Input
+                                        type="text"
+                                        inputMode="numeric"
+                                        defaultValue={user.maxDebtLimit.toLocaleString()}
+                                        onBlur={async (e) => {
+                                            const val = Number(e.target.value.replace(/\D/g, ""));
+                                            if (val === user.maxDebtLimit) return;
+                                            const res = await fetch(`/api/users/${id}`, {
+                                                method: "PATCH",
+                                                headers: { "Content-Type": "application/json" },
+                                                body: JSON.stringify({ maxDebtLimit: val }),
+                                            });
+                                            if (res.ok) {
+                                                alert("سقف بدهی بروزرسانی شد");
+                                                fetchUserData();
+                                            }
+                                        }}
+                                        className="w-48"
+                                    />
+                                </div>
+                                <p className="text-sm text-[var(--muted-foreground)] pb-2">
+                                    فعلی: {user.maxDebtLimit.toLocaleString("fa-IR")} تومان
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Overall Statistics */}
                 <div className="grid gap-6 md:grid-cols-4 mb-6">

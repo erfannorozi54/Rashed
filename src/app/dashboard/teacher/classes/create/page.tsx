@@ -8,139 +8,181 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Textarea } from "@/components/ui/Textarea";
-import { ArrowLeft, Plus, Trash2, Calendar as CalendarIcon } from "lucide-react";
-import Link from "next/link";
 import PersianDatePicker from "@/components/ui/PersianDatePicker";
+import SessionPlannerCalendar from "@/components/ui/SessionPlannerCalendar";
+import { Globe, Key, Lock, Calendar, Trash2, Plus } from "lucide-react";
+import Link from "next/link";
 import { toJalali } from "@/lib/jalali-utils";
 import moment from "moment-jalaali";
+import { cn } from "@/lib/utils";
 
-interface ScheduledSession {
+type ClassType = "PUBLIC" | "SEMI_PRIVATE" | "PRIVATE";
+type SessionTab = "recurring" | "custom";
+
+interface PlannedSession {
     id: string;
     title: string;
     date: Date;
     description?: string;
 }
 
+const CLASS_TYPE_OPTIONS: { value: ClassType; label: string; description: string; icon: React.ReactNode }[] = [
+    {
+        value: "PUBLIC",
+        label: "عمومی",
+        description: "دانش‌آموزان می‌توانند درخواست ثبت‌نام دهند",
+        icon: <Globe className="h-5 w-5" />,
+    },
+    {
+        value: "SEMI_PRIVATE",
+        label: "نیمه خصوصی",
+        description: "نیاز به کد دعوت",
+        icon: <Key className="h-5 w-5" />,
+    },
+    {
+        value: "PRIVATE",
+        label: "خصوصی",
+        description: "فقط ادمین دانش‌آموز تعیین می‌کند",
+        icon: <Lock className="h-5 w-5" />,
+    },
+];
+
+const WEEK_DAYS = [
+    { label: "شنبه", value: 6 },
+    { label: "یکشنبه", value: 0 },
+    { label: "دوشنبه", value: 1 },
+    { label: "سه‌شنبه", value: 2 },
+    { label: "چهارشنبه", value: 3 },
+    { label: "پنج‌شنبه", value: 4 },
+    { label: "جمعه", value: 5 },
+];
+
 export default function CreateClassPage() {
     const router = useRouter();
     const { data: session } = useSession();
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
-        name: "",
-        description: "",
-    });
-    const [scheduledSessions, setScheduledSessions] = useState<ScheduledSession[]>([]);
-    const [activeTab, setActiveTab] = useState<"manual" | "auto">("manual");
-    const [generationConfig, setGenerationConfig] = useState({
-        startDate: null as Date | null,
-        startTime: "10:00",
-        count: 12,
-        days: [] as number[], // 0-6, where 6 is Saturday (to match JS getDay() where 6 is Sat)
-        // Actually, let's use JS standard: 0=Sun, 1=Mon, ..., 6=Sat
-    });
 
-    const [newSession, setNewSession] = useState<{
-        title: string;
-        date: Date | null;
-        time: string;
-        description: string;
-    }>({
-        title: "",
-        date: null,
-        time: "10:00",
-        description: "",
-    });
+    // Section 1 — basic info
+    const [name, setName] = useState("");
+    const [description, setDescription] = useState("");
+    const [classType, setClassType] = useState<ClassType>("PUBLIC");
+    const [maxCapacity, setMaxCapacity] = useState("");
+    const [sessionDuration, setSessionDuration] = useState("90");
+    const [sessionPrice, setSessionPrice] = useState("0");
 
-    const handleAddSession = () => {
-        if (!newSession.title || !newSession.date) return;
+    const formatPrice = (val: string) => {
+        const num = val.replace(/\D/g, "");
+        return num ? Number(num).toLocaleString() : "";
+    };
+    const rawPrice = (val: string) => val.replace(/\D/g, "") || "0";
+    const [minSessionsToPay, setMinSessionsToPay] = useState("");
 
-        const dateWithTime = new Date(newSession.date);
-        const [hours, minutes] = newSession.time.split(':').map(Number);
-        dateWithTime.setHours(hours, minutes);
+    // Section 2 — session planner
+    const [sessionTab, setSessionTab] = useState<SessionTab>("recurring");
+    const [plannedSessions, setPlannedSessions] = useState<PlannedSession[]>([]);
+    const [sessionTime, setSessionTime] = useState("10:00");
 
-        setScheduledSessions([
-            ...scheduledSessions,
-            {
-                id: Math.random().toString(36).substr(2, 9),
-                title: newSession.title,
-                date: dateWithTime,
-                description: newSession.description,
-            },
-        ]);
+    // Recurring config
+    const [recurringStartDate, setRecurringStartDate] = useState<Date | null>(null);
+    const [recurringDays, setRecurringDays] = useState<number[]>([]);
+    const [recurringCount, setRecurringCount] = useState(12);
+    const [previewDates, setPreviewDates] = useState<Date[]>([]);
 
-        setNewSession({
-            title: "",
-            date: null,
-            time: "10:00",
-            description: "",
-        });
+    const toggleDay = (day: number) => {
+        setRecurringDays((prev) =>
+            prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+        );
     };
 
-    const handleGenerateSessions = () => {
-        if (!generationConfig.startDate || generationConfig.days.length === 0) return;
+    const handleGeneratePreview = () => {
+        if (!recurringStartDate || recurringDays.length === 0) return;
 
-        const sessions: ScheduledSession[] = [];
-        let currentDate = moment(generationConfig.startDate);
+        const dates: Date[] = [];
+        let current = moment(recurringStartDate);
         let count = 0;
-
-        // Safety break to prevent infinite loops
         let iterations = 0;
-        const maxIterations = 365; // Limit to one year lookahead
 
-        while (count < generationConfig.count && iterations < maxIterations) {
-            // JS getDay(): Sun=0, Mon=1, ..., Sat=6
-            // We need to match this with our checkbox values
-            const dayOfWeek = currentDate.toDate().getDay();
-
-            if (generationConfig.days.includes(dayOfWeek)) {
-                const dateWithTime = currentDate.toDate();
-                const [hours, minutes] = generationConfig.startTime.split(':').map(Number);
-                dateWithTime.setHours(hours, minutes);
-
-                sessions.push({
-                    id: Math.random().toString(36).substr(2, 9) + count,
-                    title: `جلسه ${count + 1}`,
-                    date: dateWithTime,
-                    description: "",
-                });
+        while (count < recurringCount && iterations < 365) {
+            const dow = current.toDate().getDay();
+            if (recurringDays.includes(dow)) {
+                const d = current.toDate();
+                const [h, m] = sessionTime.split(":").map(Number);
+                d.setHours(h, m, 0, 0);
+                dates.push(new Date(d));
                 count++;
             }
-
-            currentDate.add(1, 'day');
+            current.add(1, "day");
             iterations++;
         }
 
-        setScheduledSessions([...scheduledSessions, ...sessions]);
-        setActiveTab("manual"); // Switch to list view
+        setPreviewDates(dates);
     };
 
-    const toggleDay = (day: number) => {
-        const newDays = generationConfig.days.includes(day)
-            ? generationConfig.days.filter(d => d !== day)
-            : [...generationConfig.days, day];
-        setGenerationConfig({ ...generationConfig, days: newDays });
+    const handleAddRecurringToPlanned = () => {
+        const newSessions: PlannedSession[] = previewDates.map((d, i) => ({
+            id: Math.random().toString(36).slice(2),
+            title: `جلسه ${plannedSessions.length + i + 1}`,
+            date: d,
+        }));
+        setPlannedSessions((prev) => [...prev, ...newSessions]);
+        setPreviewDates([]);
+    };
+
+    const handleCalendarPick = (date: Date) => {
+        const [h, m] = sessionTime.split(":").map(Number);
+        date.setHours(h, m, 0, 0);
+
+        const exists = plannedSessions.findIndex((s) => {
+            const a = moment(s.date);
+            const b = moment(date);
+            return a.jYear() === b.jYear() && a.jMonth() === b.jMonth() && a.jDate() === b.jDate();
+        });
+
+        if (exists >= 0) {
+            setPlannedSessions((prev) => prev.filter((_, i) => i !== exists));
+        } else {
+            setPlannedSessions((prev) => [
+                ...prev,
+                {
+                    id: Math.random().toString(36).slice(2),
+                    title: `جلسه ${prev.length + 1}`,
+                    date: new Date(date),
+                },
+            ]);
+        }
     };
 
     const handleRemoveSession = (id: string) => {
-        setScheduledSessions(scheduledSessions.filter((s) => s.id !== id));
+        setPlannedSessions((prev) => prev.filter((s) => s.id !== id));
+    };
+
+    const handleUpdateSessionTitle = (id: string, title: string) => {
+        setPlannedSessions((prev) =>
+            prev.map((s) => (s.id === id ? { ...s, title } : s))
+        );
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (!name.trim()) return;
         setLoading(true);
 
         try {
             const response = await fetch("/api/classes", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    ...formData,
-                    scheduledSessions: scheduledSessions.map(s => ({
+                    name: name.trim(),
+                    description: description.trim() || undefined,
+                    classType,
+                    maxCapacity: maxCapacity ? Number(maxCapacity) : undefined,
+                    sessionDuration: Number(sessionDuration) || 90,
+                    sessionPrice: Number(sessionPrice) || 0,
+                    minSessionsToPay: minSessionsToPay !== "" ? Number(minSessionsToPay) : null,
+                    scheduledSessions: plannedSessions.map((s) => ({
                         title: s.title,
                         date: s.date.toISOString(),
-                        description: s.description
+                        description: s.description,
                     })),
                 }),
             });
@@ -175,49 +217,123 @@ export default function CreateClassPage() {
                         اطلاعات کلاس و برنامه جلسات را وارد کنید
                     </p>
                 </div>
-                <Link href="/dashboard/teacher/classes">
-                    <Button variant="outline">
-                        <ArrowLeft className="h-4 w-4 ml-2" />
-                        بازگشت
-                    </Button>
-                </Link>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
+                {/* Section 1 — Basic Info */}
                 <Card>
                     <CardHeader>
                         <CardTitle>اطلاعات پایه</CardTitle>
-                        <CardDescription>
-                            نام و توضیحات کلاس را وارد کنید
-                        </CardDescription>
+                        <CardDescription>نام، نوع و ظرفیت کلاس را مشخص کنید</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-5">
                         <div className="space-y-2">
-                            <Label htmlFor="name">نام کلاس</Label>
+                            <Label htmlFor="name">نام کلاس *</Label>
                             <Input
                                 id="name"
                                 required
-                                value={formData.name}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, name: e.target.value })
-                                }
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
                                 placeholder="مثال: ریاضی پایه دهم"
                             />
                         </div>
+
                         <div className="space-y-2">
                             <Label htmlFor="description">توضیحات (اختیاری)</Label>
                             <Textarea
                                 id="description"
-                                value={formData.description}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, description: e.target.value })
-                                }
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
                                 placeholder="توضیحات درباره کلاس..."
                             />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>نوع کلاس</Label>
+                            <div className="grid sm:grid-cols-3 gap-3">
+                                {CLASS_TYPE_OPTIONS.map((opt) => (
+                                    <button
+                                        key={opt.value}
+                                        type="button"
+                                        onClick={() => setClassType(opt.value)}
+                                        className={cn(
+                                            "flex flex-col items-center gap-2 p-4 rounded-lg border-2 text-center transition-all focus-visible:ring-2 focus-visible:ring-[var(--primary-600)] focus-visible:outline-none",
+                                            classType === opt.value
+                                                ? "border-[var(--primary-600)] bg-[var(--primary-50)] text-[var(--primary-700)]"
+                                                : "border-[var(--border)] bg-white text-[var(--foreground)] hover:border-[var(--primary-400)]"
+                                        )}
+                                    >
+                                        {opt.icon}
+                                        <span className="font-semibold text-sm">{opt.label}</span>
+                                        <span className="text-xs opacity-70">{opt.description}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="grid sm:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="maxCapacity">حداکثر ظرفیت (اختیاری)</Label>
+                                <Input
+                                    id="maxCapacity"
+                                    type="number"
+                                    min="1"
+                                    value={maxCapacity}
+                                    onChange={(e) => setMaxCapacity(e.target.value)}
+                                    placeholder="نامحدود"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="sessionDuration">مدت هر جلسه (دقیقه)</Label>
+                                <Input
+                                    id="sessionDuration"
+                                    type="number"
+                                    min="15"
+                                    max="480"
+                                    value={sessionDuration}
+                                    onChange={(e) => setSessionDuration(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid sm:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="sessionPrice">هزینه هر جلسه</Label>
+                                <div className="relative">
+                                    <Input
+                                        id="sessionPrice"
+                                        type="text"
+                                        inputMode="numeric"
+                                        value={formatPrice(sessionPrice)}
+                                        onChange={(e) => setSessionPrice(rawPrice(e.target.value))}
+                                        placeholder="0"
+                                        className="pl-16"
+                                    />
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--muted-foreground)]">تومان</span>
+                                </div>
+                                {Number(sessionPrice) === 0 && (
+                                    <p className="text-xs text-green-600">رایگان</p>
+                                )}
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="minSessionsToPay">حداقل جلسات برای پرداخت (اختیاری)</Label>
+                                <Input
+                                    id="minSessionsToPay"
+                                    type="number"
+                                    min="0"
+                                    value={minSessionsToPay}
+                                    onChange={(e) => setMinSessionsToPay(e.target.value)}
+                                    placeholder={`${plannedSessions.length || "کل جلسات"}`}
+                                />
+                                <p className="text-xs text-[var(--muted-foreground)]">
+                                    ۰ = ثبت‌نام رایگان | خالی = پرداخت کامل
+                                </p>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
 
+                {/* Section 2 — Session Planner */}
                 <Card>
                     <CardHeader>
                         <CardTitle>برنامه جلسات</CardTitle>
@@ -225,117 +341,53 @@ export default function CreateClassPage() {
                             جلسات برنامه‌ریزی شده کلاس را تعریف کنید
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-6">
+                    <CardContent className="space-y-5">
                         {/* Tabs */}
-                        <div className="flex border-b border-[var(--border)] mb-4">
+                        <div className="flex border-b border-[var(--border)]">
                             <button
                                 type="button"
-                                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "manual"
-                                    ? "border-[var(--primary-600)] text-[var(--primary-600)]"
-                                    : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                                    }`}
-                                onClick={() => setActiveTab("manual")}
+                                onClick={() => setSessionTab("recurring")}
+                                className={cn(
+                                    "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
+                                    sessionTab === "recurring"
+                                        ? "border-[var(--primary-600)] text-[var(--primary-600)]"
+                                        : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                )}
                             >
-                                افزودن دستی
+                                تکرارشونده
                             </button>
                             <button
                                 type="button"
-                                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "auto"
-                                    ? "border-[var(--primary-600)] text-[var(--primary-600)]"
-                                    : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                                    }`}
-                                onClick={() => setActiveTab("auto")}
+                                onClick={() => setSessionTab("custom")}
+                                className={cn(
+                                    "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
+                                    sessionTab === "custom"
+                                        ? "border-[var(--primary-600)] text-[var(--primary-600)]"
+                                        : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                )}
                             >
-                                تولید خودکار
+                                آزاد
                             </button>
                         </div>
 
-                        {/* Add Session Form */}
-                        {activeTab === "manual" && (
-                            <div className="p-4 border border-[var(--border)] rounded-lg bg-[var(--muted)] space-y-4">
-                                <h4 className="font-medium flex items-center gap-2">
-                                    <Plus className="h-4 w-4" />
-                                    افزودن جلسه جدید
-                                </h4>
-                                <div className="grid md:grid-cols-3 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>عنوان جلسه</Label>
-                                        <Input
-                                            value={newSession.title}
-                                            onChange={(e) =>
-                                                setNewSession({ ...newSession, title: e.target.value })
-                                            }
-                                            placeholder="مثال: جلسه اول"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>تاریخ</Label>
-                                        <PersianDatePicker
-                                            value={newSession.date || undefined}
-                                            onChange={(date) =>
-                                                setNewSession({ ...newSession, date })
-                                            }
-                                            minDate={new Date()}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>ساعت</Label>
-                                        <Input
-                                            type="time"
-                                            value={newSession.time}
-                                            onChange={(e) =>
-                                                setNewSession({ ...newSession, time: e.target.value })
-                                            }
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>توضیحات (اختیاری)</Label>
-                                    <Input
-                                        value={newSession.description}
-                                        onChange={(e) =>
-                                            setNewSession({ ...newSession, description: e.target.value })
-                                        }
-                                        placeholder="توضیحات جلسه..."
-                                    />
-                                </div>
-                                <Button
-                                    type="button"
-                                    onClick={handleAddSession}
-                                    disabled={!newSession.title || !newSession.date}
-                                    className="w-full"
-                                >
-                                    افزودن به لیست
-                                </Button>
-                            </div>
-                        )}
-
-                        {/* Auto Generation Form */}
-                        {activeTab === "auto" && (
-                            <div className="p-4 border border-[var(--border)] rounded-lg bg-[var(--muted)] space-y-4">
-                                <h4 className="font-medium flex items-center gap-2">
-                                    <CalendarIcon className="h-4 w-4" />
-                                    تولید خودکار جلسات
-                                </h4>
-                                <div className="grid md:grid-cols-2 gap-4">
+                        {/* Recurring Tab */}
+                        {sessionTab === "recurring" && (
+                            <div className="space-y-4 p-4 border border-[var(--border)] rounded-lg bg-[var(--muted)]">
+                                <div className="grid sm:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label>تاریخ شروع</Label>
                                         <PersianDatePicker
-                                            value={generationConfig.startDate || undefined}
-                                            onChange={(date) =>
-                                                setGenerationConfig({ ...generationConfig, startDate: date })
-                                            }
+                                            value={recurringStartDate || undefined}
+                                            onChange={(d) => setRecurringStartDate(d)}
                                             minDate={new Date()}
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label>ساعت برگزاری</Label>
+                                        <Label>ساعت شروع</Label>
                                         <Input
                                             type="time"
-                                            value={generationConfig.startTime}
-                                            onChange={(e) =>
-                                                setGenerationConfig({ ...generationConfig, startTime: e.target.value })
-                                            }
+                                            value={sessionTime}
+                                            onChange={(e) => setSessionTime(e.target.value)}
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -343,35 +395,29 @@ export default function CreateClassPage() {
                                         <Input
                                             type="number"
                                             min="1"
-                                            max="50"
-                                            value={generationConfig.count}
+                                            max="100"
+                                            value={recurringCount}
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                                setGenerationConfig({ ...generationConfig, count: parseInt(e.target.value) || 0 })
+                                                setRecurringCount(Number(e.target.value))
                                             }
                                         />
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label>روزهای برگزاری</Label>
+                                    <Label>روزهای هفته</Label>
                                     <div className="flex flex-wrap gap-2">
-                                        {[
-                                            { label: "شنبه", value: 6 },
-                                            { label: "یکشنبه", value: 0 },
-                                            { label: "دوشنبه", value: 1 },
-                                            { label: "سه‌شنبه", value: 2 },
-                                            { label: "چهارشنبه", value: 3 },
-                                            { label: "پنج‌شنبه", value: 4 },
-                                            { label: "جمعه", value: 5 },
-                                        ].map((day) => (
+                                        {WEEK_DAYS.map((day) => (
                                             <button
                                                 key={day.value}
                                                 type="button"
                                                 onClick={() => toggleDay(day.value)}
-                                                className={`px-3 py-1 rounded-full text-sm border transition-colors ${generationConfig.days.includes(day.value)
-                                                    ? "bg-[var(--primary-600)] text-white border-[var(--primary-600)]"
-                                                    : "bg-white text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--muted)]"
-                                                    }`}
+                                                className={cn(
+                                                    "px-3 py-1 rounded-full text-sm border transition-colors focus-visible:ring-2 focus-visible:ring-[var(--primary-600)] focus-visible:outline-none",
+                                                    recurringDays.includes(day.value)
+                                                        ? "bg-[var(--primary-600)] text-white border-[var(--primary-600)]"
+                                                        : "bg-white text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--muted)]"
+                                                )}
                                             >
                                                 {day.label}
                                             </button>
@@ -379,52 +425,94 @@ export default function CreateClassPage() {
                                     </div>
                                 </div>
 
-                                <Button
-                                    type="button"
-                                    onClick={handleGenerateSessions}
-                                    disabled={!generationConfig.startDate || generationConfig.days.length === 0}
-                                    className="w-full"
-                                >
-                                    تولید جلسات
-                                </Button>
+                                <div className="flex gap-3">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={handleGeneratePreview}
+                                        disabled={!recurringStartDate || recurringDays.length === 0}
+                                    >
+                                        پیش‌نمایش
+                                    </Button>
+                                    {previewDates.length > 0 && (
+                                        <Button type="button" onClick={handleAddRecurringToPlanned}>
+                                            <Plus className="h-4 w-4 ml-1" />
+                                            افزودن {previewDates.length} جلسه
+                                        </Button>
+                                    )}
+                                </div>
+
+                                {previewDates.length > 0 && (
+                                    <div>
+                                        <p className="text-sm font-medium mb-2">پیش‌نمایش ({previewDates.length} جلسه)</p>
+                                        <SessionPlannerCalendar
+                                            plannedDates={previewDates}
+                                            sessionDuration={Number(sessionDuration) || 90}
+                                            mode="view"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         )}
 
-                        {/* Scheduled Sessions List */}
-                        {scheduledSessions.length > 0 && (
+                        {/* Custom Tab */}
+                        {sessionTab === "custom" && (
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-4 p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]">
+                                    <Label className="whitespace-nowrap">ساعت جلسات:</Label>
+                                    <Input
+                                        type="time"
+                                        value={sessionTime}
+                                        onChange={(e) => setSessionTime(e.target.value)}
+                                        className="w-32"
+                                    />
+                                    <p className="text-sm text-[var(--muted-foreground)]">
+                                        روی روزهای تقویم کلیک کنید تا جلسه اضافه یا حذف شود
+                                    </p>
+                                </div>
+                                <SessionPlannerCalendar
+                                    plannedDates={plannedSessions.map((s) => s.date)}
+                                    sessionDuration={Number(sessionDuration) || 90}
+                                    mode="pick"
+                                    onDayClick={handleCalendarPick}
+                                />
+                            </div>
+                        )}
+
+                        {/* Planned sessions list */}
+                        {plannedSessions.length > 0 && (
                             <div className="space-y-2">
-                                <h4 className="font-medium text-sm text-[var(--muted-foreground)]">
-                                    جلسات تعریف شده ({scheduledSessions.length})
+                                <h4 className="text-sm font-medium text-[var(--muted-foreground)]">
+                                    جلسات برنامه‌ریزی شده ({plannedSessions.length})
                                 </h4>
-                                <div className="space-y-2">
-                                    {scheduledSessions
+                                <div className="space-y-2 max-h-64 overflow-y-auto">
+                                    {[...plannedSessions]
                                         .sort((a, b) => a.date.getTime() - b.date.getTime())
-                                        .map((session, index) => (
+                                        .map((s, idx) => (
                                             <div
-                                                key={session.id}
-                                                className="flex items-center justify-between p-3 bg-white border border-[var(--border)] rounded-md"
+                                                key={s.id}
+                                                className="flex items-center gap-3 p-3 bg-white border border-[var(--border)] rounded-md"
                                             >
-                                                <div className="flex items-center gap-3">
-                                                    <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">
-                                                        {index + 1}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-medium">{session.title}</p>
-                                                        <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
-                                                            <CalendarIcon className="h-3 w-3" />
-                                                            <span>{toJalali(session.date)} ساعت {moment(session.date).format("HH:mm")}</span>
-                                                            {session.description && (
-                                                                <span>- {session.description}</span>
-                                                            )}
-                                                        </div>
-                                                    </div>
+                                                <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-bold shrink-0">
+                                                    {idx + 1}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <Input
+                                                        value={s.title}
+                                                        onChange={(e) => handleUpdateSessionTitle(s.id, e.target.value)}
+                                                        className="h-7 text-sm"
+                                                    />
+                                                    <p className="text-xs text-[var(--muted-foreground)] mt-0.5 flex items-center gap-1">
+                                                        <Calendar className="h-3 w-3" />
+                                                        {toJalali(s.date)} — {moment(s.date).format("HH:mm")}
+                                                    </p>
                                                 </div>
                                                 <Button
                                                     type="button"
                                                     variant="ghost"
                                                     size="sm"
-                                                    onClick={() => handleRemoveSession(session.id)}
-                                                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                    onClick={() => handleRemoveSession(s.id)}
+                                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
@@ -442,7 +530,7 @@ export default function CreateClassPage() {
                             انصراف
                         </Button>
                     </Link>
-                    <Button type="submit" disabled={loading}>
+                    <Button type="submit" disabled={loading || !name.trim()}>
                         {loading ? "در حال ایجاد..." : "ایجاد کلاس"}
                     </Button>
                 </div>

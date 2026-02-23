@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { BookOpen, Users, FileText, LogOut, GraduationCap, PlusCircle } from "lucide-react";
+import { BookOpen, Users, FileText, LogOut, GraduationCap, PlusCircle, Clock } from "lucide-react";
 import Link from "next/link";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 
@@ -74,7 +74,7 @@ export default function TeacherDashboard() {
                 </div>
 
                 {/* Quick Stats */}
-                <div className="grid gap-6 md:grid-cols-3 mb-8">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
                     <Link href="/dashboard/teacher/classes">
                         <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -86,6 +86,19 @@ export default function TeacherDashboard() {
                                 <p className="text-xs text-[var(--muted-foreground)]">
                                     کلیک کنید برای مشاهده
                                 </p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+
+                    <Link href="/dashboard/teacher/availability">
+                        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">زمان آزاد</CardTitle>
+                                <Clock className="h-4 w-4 text-[var(--muted-foreground)]" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">-</div>
+                                <p className="text-xs text-[var(--muted-foreground)]">مدیریت زمان آزاد</p>
                             </CardContent>
                         </Card>
                     </Link>

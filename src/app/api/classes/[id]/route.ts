@@ -43,6 +43,7 @@ export async function GET(
                     },
                 },
                 sessions: {
+                    where: { cancelled: false },
                     include: {
                         contents: true,
                         assignments: {
@@ -132,6 +133,7 @@ export async function GET(
                 title: session.title,
                 description: session.description,
                 date: session.date,
+                type: session.type,
                 createdAt: session.createdAt,
                 attendanceCount: {
                     total: classData.students.length,
@@ -147,6 +149,11 @@ export async function GET(
             id: classData.id,
             name: classData.name,
             description: classData.description,
+            classType: classData.classType,
+            maxCapacity: classData.maxCapacity,
+            sessionDuration: classData.sessionDuration,
+            sessionPrice: classData.sessionPrice,
+            minSessionsToPay: classData.minSessionsToPay,
             teachers: classData.teachers.map((t) => t.teacher),
             students: formattedStudents,
             sessions: formattedSessions,
@@ -163,6 +170,94 @@ export async function GET(
         console.error("Get class details error:", error);
         return NextResponse.json(
             { error: "خطا در دریافت اطلاعات کلاس" },
+            { status: 500 }
+        );
+    }
+}
+
+export async function PATCH(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const session = await getServerSession(authOptions);
+
+        if (!session) {
+            return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+        }
+
+        const { id: classId } = await params;
+
+        // Check access: ADMIN or teacher of this class
+        if (session.user.role !== "ADMIN") {
+            const isTeacher = await prisma.classTeacher.findUnique({
+                where: {
+                    classId_teacherId: {
+                        classId,
+                        teacherId: session.user.id,
+                    },
+                },
+            });
+            if (!isTeacher) {
+                return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
+            }
+        }
+
+        const body = await request.json();
+        const {
+            name,
+            description,
+            classType,
+            maxCapacity,
+            sessionDuration,
+            sessionPrice,
+            minSessionsToPay,
+            teacherIds,
+        } = body;
+
+        const updateData: any = {};
+        if (name !== undefined) updateData.name = name;
+        if (description !== undefined) updateData.description = description;
+        if (classType !== undefined) updateData.classType = classType;
+        if (maxCapacity !== undefined)
+            updateData.maxCapacity = maxCapacity ? Number(maxCapacity) : null;
+        if (sessionDuration !== undefined)
+            updateData.sessionDuration = Number(sessionDuration);
+        if (sessionPrice !== undefined)
+            updateData.sessionPrice = Number(sessionPrice);
+        if (minSessionsToPay !== undefined)
+            updateData.minSessionsToPay =
+                minSessionsToPay !== null && minSessionsToPay !== ""
+                    ? Number(minSessionsToPay)
+                    : null;
+
+        // Admin can update teachers
+        if (session.user.role === "ADMIN" && teacherIds !== undefined) {
+            await prisma.classTeacher.deleteMany({ where: { classId } });
+            if (teacherIds.length > 0) {
+                await prisma.classTeacher.createMany({
+                    data: teacherIds.map((tid: string) => ({ classId, teacherId: tid })),
+                });
+            }
+        }
+
+        const updatedClass = await prisma.class.update({
+            where: { id: classId },
+            data: updateData,
+            include: {
+                teachers: {
+                    include: {
+                        teacher: { select: { id: true, name: true } },
+                    },
+                },
+            },
+        });
+
+        return NextResponse.json({ class: updatedClass }, { status: 200 });
+    } catch (error) {
+        console.error("Patch class error:", error);
+        return NextResponse.json(
+            { error: "خطا در ویرایش کلاس" },
             { status: 500 }
         );
     }

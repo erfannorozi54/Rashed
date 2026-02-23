@@ -102,13 +102,21 @@ export default function TeachersPage() {
                                                     {new Date(teacher.createdAt).toLocaleDateString("fa-IR")}
                                                 </td>
                                                 <td className="p-3 text-sm">
-                                                    <Link
-                                                        href={`/dashboard/admin/users/${teacher.id}`}
-                                                        className="text-[var(--primary-600)] hover:underline flex items-center gap-1"
-                                                    >
-                                                        <TrendingUp className="h-4 w-4" />
-                                                        مشاهده جزئیات
-                                                    </Link>
+                                                    <div className="flex items-center gap-3">
+                                                        <Link
+                                                            href={`/dashboard/admin/users/${teacher.id}`}
+                                                            className="text-[var(--primary-600)] hover:underline flex items-center gap-1"
+                                                        >
+                                                            <TrendingUp className="h-4 w-4" />
+                                                            جزئیات
+                                                        </Link>
+                                                        <Link
+                                                            href={`/dashboard/admin/teachers/${teacher.id}/availability`}
+                                                            className="text-[var(--secondary-600)] hover:underline flex items-center gap-1"
+                                                        >
+                                                            زمان آزاد
+                                                        </Link>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}

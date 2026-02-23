@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { BookOpen, Calendar, Download, Users, FileText, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { BookOpen, Calendar, Download, Users, FileText, Clock, CheckCircle, XCircle, CreditCard } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 interface Teacher {
   id: string;
@@ -62,6 +63,10 @@ interface ClassData {
   upcomingSessions: Session[];
   totalSessions: number;
   createdAt: string;
+  sessionPrice?: number;
+  enrollmentStatus?: "PENDING_PAYMENT" | "ENROLLED" | "CANCELLED";
+  paidAmount?: number;
+  payment?: { id: string; amount: number; status: string } | null;
 }
 
 export default function ClassDetailPage({ params }: { params: { id: string } }) {
@@ -71,6 +76,7 @@ export default function ClassDetailPage({ params }: { params: { id: string } }) 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (status === "loading") return;
     if (session?.user?.role !== "STUDENT") {
       router.push("/dashboard");
       return;
@@ -120,9 +126,6 @@ export default function ClassDetailPage({ params }: { params: { id: string } }) 
             <p className="text-[var(--muted-foreground)]">{classData.description}</p>
           )}
         </div>
-        <Link href="/dashboard/student/classes">
-          <Button variant="outline">بازگشت به لیست کلاس‌ها</Button>
-        </Link>
       </div>
 
       {/* Class Info */}
@@ -161,6 +164,40 @@ export default function ClassDetailPage({ params }: { params: { id: string } }) 
           </CardContent>
         </Card>
       </div>
+
+      {/* Enrollment Status */}
+      {classData.enrollmentStatus && (
+        <Card>
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-2">
+                <span className={cn(
+                  "px-3 py-1 rounded-full text-sm font-medium",
+                  classData.enrollmentStatus === "ENROLLED" ? "bg-green-100 text-green-700" :
+                  classData.enrollmentStatus === "PENDING_PAYMENT" ? "bg-amber-100 text-amber-700" :
+                  "bg-gray-100 text-gray-600"
+                )}>
+                  {classData.enrollmentStatus === "ENROLLED" ? "ثبت‌نام شده" :
+                   classData.enrollmentStatus === "PENDING_PAYMENT" ? "در انتظار پرداخت" : "لغو شده"}
+                </span>
+                {classData.paidAmount !== undefined && classData.paidAmount > 0 && (
+                  <span className="text-sm text-[var(--muted-foreground)]">
+                    پرداخت شده: {classData.paidAmount.toLocaleString("fa-IR")} تومان
+                  </span>
+                )}
+              </div>
+              {classData.enrollmentStatus === "PENDING_PAYMENT" && classData.payment && (
+                <Link href={`/payment/mock?payment_id=${classData.payment.id}`}>
+                  <Button size="sm">
+                    <CreditCard className="h-4 w-4 ml-1" />
+                    پرداخت {classData.payment.amount.toLocaleString("fa-IR")} تومان
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Upcoming Sessions */}
       {classData.upcomingSessions.length > 0 && (

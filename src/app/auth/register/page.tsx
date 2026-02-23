@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -98,7 +99,14 @@ function StepBubble({
 
 export default function RegisterPage() {
     const router = useRouter();
+    const { status } = useSession();
     const [step, setStep] = useState(1);
+
+    useEffect(() => {
+        if (status === "authenticated") {
+            router.replace("/dashboard");
+        }
+    }, [status, router]);
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName]   = useState("");
@@ -186,6 +194,14 @@ export default function RegisterPage() {
 
     const strength = getPasswordStrength(password);
 
+    if (status === "loading" || status === "authenticated") {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <RefreshCw className="h-8 w-8 animate-spin text-[var(--primary-600)]" />
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen flex">
             {/* ── Left decorative panel ── */}
@@ -213,8 +229,9 @@ export default function RegisterPage() {
                         <Image
                             src="/images/auth/register-illustration.webp"
                             alt="تصویر ثبت‌نام"
-                            width={600}
-                            height={390}
+                            width={900}
+                            height={585}
+                            quality={90}
                             className="w-full h-auto mix-blend-multiply"
                             priority
                         />

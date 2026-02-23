@@ -123,6 +123,7 @@ export async function GET(request: NextRequest) {
 
         // Filter by date based on type or range
         const now = new Date();
+        whereClause.cancelled = false;
         const startDate = searchParams.get("startDate");
         const endDate = searchParams.get("endDate");
 

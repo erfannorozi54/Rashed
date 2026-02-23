@@ -4,7 +4,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { BookOpen, Calendar, FileText, LogOut, GraduationCap, ChevronLeft } from "lucide-react";
+import { BookOpen, Calendar, FileText, LogOut, GraduationCap, ChevronLeft, CreditCard } from "lucide-react";
 import Link from "next/link";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 import { SessionTypeBadge } from "@/components/SessionTypeBadge";
@@ -19,6 +19,7 @@ export default function StudentDashboard() {
     });
     const [upcomingSessions, setUpcomingSessions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [outstandingDebt, setOutstandingDebt] = useState(0);
 
     useEffect(() => {
         if (session?.user?.role === "STUDENT") {
@@ -56,6 +57,15 @@ export default function StudentDashboard() {
                 }).length || 0,
             });
 
+            // Fetch outstanding debt
+            const paymentsRes = await fetch("/api/payments");
+            if (paymentsRes.ok) {
+                const paymentsData = await paymentsRes.json();
+                const debt = (paymentsData.payments || [])
+                    .filter((p: any) => p.status === "PENDING" || p.status === "FAILED")
+                    .reduce((sum: number, p: any) => sum + p.amount, 0);
+                setOutstandingDebt(debt);
+            }
 
         } catch (error) {
             console.error("Error fetching dashboard data:", error);
@@ -80,7 +90,7 @@ export default function StudentDashboard() {
                 </div>
 
                 {/* Quick Stats */}
-                <div className="grid gap-6 md:grid-cols-3 mb-8">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">کلاس‌های من</CardTitle>
@@ -119,7 +129,21 @@ export default function StudentDashboard() {
                             </p>
                         </CardContent>
                     </Card>
-                </div>
+
+                    <Link href="/dashboard/student/account">
+                    <Card className={outstandingDebt > 0 ? "hover:shadow-lg transition-shadow cursor-pointer border-amber-200 bg-amber-50" : "hover:shadow-lg transition-shadow cursor-pointer"}>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">حساب من</CardTitle>
+                            <CreditCard className={`h-4 w-4 ${outstandingDebt > 0 ? "text-amber-600" : "text-[var(--muted-foreground)]"}`} />
+                        </CardHeader>
+                        <CardContent>
+                            <div className={`text-2xl font-bold ${outstandingDebt > 0 ? "text-amber-700" : ""}`}>
+                                {outstandingDebt > 0 ? outstandingDebt.toLocaleString("fa-IR") : "۰"}
+                            </div>
+                            <p className="text-xs text-[var(--muted-foreground)]">تومان بدهی</p>
+                        </CardContent>
+                    </Card>
+                    </Link>                </div>
 
                 {/* Upcoming Sessions Section */}
                 <div className="grid gap-6 md:grid-cols-2">

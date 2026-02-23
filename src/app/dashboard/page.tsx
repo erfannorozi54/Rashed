@@ -5,11 +5,10 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function DashboardPage() {
-    const { data: session, status } = useSession();
+    const { data: session } = useSession();
     const router = useRouter();
 
     useEffect(() => {
-        if (status === "loading") return;
 
         if (!session) {
             router.push("/auth/login");
@@ -24,7 +23,7 @@ export default function DashboardPage() {
         } else if (session.user.role === "TEACHER") {
             router.push("/dashboard/teacher");
         }
-    }, [session, status, router]);
+    }, [session, router]);
 
     return (
         <div className="min-h-screen flex items-center justify-center">

@@ -152,6 +152,7 @@ export async function GET(
                 phone: user.phone,
                 email: user.email,
                 role: user.role,
+                maxDebtLimit: user.maxDebtLimit,
                 createdAt: user.createdAt,
             },
             enrolledClasses: classStats,
@@ -192,5 +193,32 @@ export async function GET(
             { error: "خطا در دریافت اطلاعات کاربر" },
             { status: 500 }
         );
+    }
+}
+
+export async function PATCH(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session || session.user.role !== "ADMIN") {
+            return NextResponse.json({ error: "فقط مدیر" }, { status: 403 });
+        }
+
+        const { id } = await params;
+        const body = await request.json();
+
+        const data: Record<string, unknown> = {};
+        if (body.maxDebtLimit !== undefined) data.maxDebtLimit = Number(body.maxDebtLimit);
+        if (body.firstName !== undefined) data.firstName = body.firstName;
+        if (body.lastName !== undefined) data.lastName = body.lastName;
+        if (body.name !== undefined) data.name = body.name;
+
+        const user = await prisma.user.update({ where: { id }, data });
+        return NextResponse.json({ user });
+    } catch (error) {
+        console.error(error);
+        return NextResponse.json({ error: "خطا" }, { status: 500 });
     }
 }

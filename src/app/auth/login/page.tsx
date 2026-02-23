@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState, useEffect } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -36,6 +36,13 @@ function LoginForm() {
     const router       = useRouter();
     const searchParams = useSearchParams();
     const registered   = searchParams.get("registered") === "true";
+    const { status }   = useSession();
+
+    useEffect(() => {
+        if (status === "authenticated") {
+            router.replace("/dashboard");
+        }
+    }, [status, router]);
 
     const [method, setMethod] = useState<"password" | "otp">("password");
 
@@ -156,6 +163,14 @@ function LoginForm() {
 
     // ── render ────────────────────────────────────────────────────────────────
 
+    if (status === "loading" || status === "authenticated") {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <RefreshCw className="h-8 w-8 animate-spin text-[var(--primary-600)]" />
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen flex">
             {/* ── Left decorative panel ── */}
@@ -183,8 +198,9 @@ function LoginForm() {
                         <Image
                             src="/images/auth/login-illustration.webp"
                             alt="تصویر ورود"
-                            width={600}
-                            height={390}
+                            width={900}
+                            height={585}
+                            quality={90}
                             className="w-full h-auto mix-blend-multiply"
                             priority
                         />
