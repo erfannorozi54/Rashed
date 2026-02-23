@@ -81,6 +81,9 @@ export const metadata: Metadata = {
   verification: {
     google: "your-google-verification-code", // Add your Google Search Console verification code
   },
+  other: {
+    enamad: "40567064",
+  },
 };
 
 export default function RootLayout({

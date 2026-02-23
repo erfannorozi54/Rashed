@@ -540,13 +540,27 @@ export default function HomePage() {
                 </ul>
                 <div className="mt-6">
                   <p className="text-gray-400 text-sm">ایمیل:</p>
-                  <p className="text-white">info@rashed-math.ir</p>
+                  <p className="text-white">support@academy-rashed.ir</p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-12 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
+            <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-gray-500 text-sm">
               <p>© ۱۴۰۳ آموزشگاه ریاضی راشد تبریز. تمامی حقوق محفوظ است.</p>
+              <a
+                referrerPolicy="origin"
+                target="_blank"
+                href="https://trustseal.enamad.ir/?id=710295&Code=ox1vsnxyEfEQIT9YEy7YjjWvSikf3agS"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  referrerPolicy="origin"
+                  src="/api/enamad-logo"
+                  alt="اینماد"
+                  style={{ cursor: "pointer" }}
+                  data-code="ox1vsnxyEfEQIT9YEy7YjjWvSikf3agS"
+                />
+              </a>
             </div>
           </div>
         </footer>
