@@ -160,13 +160,13 @@ export default function AvailabilityGrid({ grid, onChange, selectedDay, onSelect
           onPointerMove={handlePointerMove}
         >
           {/* Hour labels */}
-          <div className="flex border-b border-[var(--border)]">
+          <div className="flex border-b border-[var(--border)] bg-gray-50/80">
             <div className="w-20 shrink-0" />
             <div className="flex-1 flex">
               {HOUR_LABELS.map((h, i) => (
                 <div
                   key={h}
-                  className="text-[10px] text-[var(--muted-foreground)] text-center py-1.5"
+                  className="text-[10px] font-medium text-[var(--muted-foreground)] text-center py-2"
                   style={{ width: i < HOUR_LABELS.length - 1 ? `${100 / (HOURS_END - HOURS_START)}%` : 0 }}
                 >
                   {h}
@@ -190,7 +190,7 @@ export default function AvailabilityGrid({ grid, onChange, selectedDay, onSelect
                 <button
                   onClick={() => onSelectDay(selectedDay === day ? null : day)}
                   className={cn(
-                    "w-20 shrink-0 py-3 px-2 text-xs font-medium text-right transition-colors",
+                    "w-20 shrink-0 py-3 px-2 text-xs font-semibold text-right transition-colors",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--primary-600)]",
                     selectedDay === day
                       ? "text-[var(--primary-600)]"
@@ -203,22 +203,33 @@ export default function AvailabilityGrid({ grid, onChange, selectedDay, onSelect
                 </button>
               )}
               {mobile && <div className="w-2 shrink-0" />}
-              <div className={cn("flex-1 flex", mobile ? "h-14" : "h-10")}>
-                {Array.from({ length: CELLS_PER_DAY }, (_, c) => (
-                  <div
-                    key={c}
-                    data-day={day}
-                    data-cell={c}
-                    onPointerDown={(e) => { e.preventDefault(); handlePointerDown(day, c); }}
-                    className={cn(
-                      "h-full transition-colors duration-75 cursor-pointer",
-                      grid[day][c] ? "bg-emerald-400 hover:bg-emerald-500" : "bg-gray-50 hover:bg-gray-100",
-                      c % 2 === 0 ? "border-l border-[var(--border)]/60" : "border-l border-[var(--border)]/20"
-                    )}
-                    style={{ width: `${100 / CELLS_PER_DAY}%` }}
-                    title={`${cellToTime(c)} – ${cellToTime(c + 1)}`}
-                  />
-                ))}
+              <div className={cn("flex-1 flex py-1 gap-px", mobile ? "h-14" : "h-11")}>
+                {Array.from({ length: CELLS_PER_DAY }, (_, c) => {
+                  const active = grid[day][c];
+                  const prevActive = c > 0 && grid[day][c - 1];
+                  const nextActive = c < CELLS_PER_DAY - 1 && grid[day][c + 1];
+                  return (
+                    <div
+                      key={c}
+                      data-day={day}
+                      data-cell={c}
+                      onPointerDown={(e) => { e.preventDefault(); handlePointerDown(day, c); }}
+                      className={cn(
+                        "h-full transition-all duration-75 cursor-pointer",
+                        active
+                          ? cn(
+                              "bg-emerald-400 hover:bg-emerald-500",
+                              !prevActive && "rounded-r-sm",
+                              !nextActive && "rounded-l-sm",
+                            )
+                          : "bg-gray-100 hover:bg-gray-200 rounded-sm",
+                        c % 2 === 0 && !active && "border-r border-gray-200/80",
+                      )}
+                      style={{ width: `${100 / CELLS_PER_DAY}%` }}
+                      title={`${cellToTime(c)} – ${cellToTime(c + 1)}`}
+                    />
+                  );
+                })}
               </div>
             </div>
           ))}

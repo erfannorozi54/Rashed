@@ -1,19 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Undo2, Redo2, Copy, ChevronDown, Save } from "lucide-react";
+import { Undo2, Redo2, Copy, ChevronDown, Save, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { cloneGrid } from "@/components/ui/AvailabilityGrid";
 
 const DAY_NAMES = ["شنبه", "یکشنبه", "دوشنبه", "سهشنبه", "چهارشنبه", "پنجشنبه", "جمعه"];
-const HOURS_START = 7;
-const CELLS_PER_DAY = (22 - HOURS_START) * 2;
+const CELLS_PER_DAY = (22 - 7) * 2;
 
-const PRESETS: { label: string; from: number; to: number }[] = [
-  { label: "صبح", from: 0, to: 10 },       // 7:00–12:00
-  { label: "بعدازظهر", from: 10, to: 20 }, // 12:00–17:00
-  { label: "تمام روز", from: 0, to: 30 },  // 7:00–22:00
+const PRESETS = [
+  { label: "صبح", sublabel: "۷–۱۲", from: 0, to: 10, color: "text-orange-600 bg-orange-50 hover:bg-orange-100" },
+  { label: "بعدازظهر", sublabel: "۱۲–۱۷", from: 10, to: 20, color: "text-blue-600 bg-blue-50 hover:bg-blue-100" },
+  { label: "تمام روز", sublabel: "۷–۲۲", from: 0, to: 30, color: "text-emerald-600 bg-emerald-50 hover:bg-emerald-100" },
 ];
 
 interface Props {
@@ -30,31 +29,30 @@ interface Props {
 }
 
 export default function AvailabilityToolbar({
-  grid,
-  selectedDay,
-  history,
-  historyIdx,
-  onGridChange,
-  onUndo,
-  onRedo,
-  onSave,
-  saving,
-  className,
+  grid, selectedDay, history, historyIdx,
+  onGridChange, onUndo, onRedo, onSave, saving, className,
 }: Props) {
   const [copyMenuOpen, setCopyMenuOpen] = useState(false);
   const [copySource, setCopySource] = useState<number | null>(null);
   const [presetsOpen, setPresetsOpen] = useState(false);
 
+  const close = () => { setPresetsOpen(false); setCopyMenuOpen(false); };
+
   const applyPreset = (from: number, to: number) => {
     const next = cloneGrid(grid);
     const days = selectedDay !== null ? [selectedDay] : [0, 1, 2, 3, 4, 5, 6];
-    for (const d of days) {
-      for (let c = 0; c < CELLS_PER_DAY; c++) {
-        next[d][c] = c >= from && c < to;
-      }
-    }
+    for (const d of days)
+      for (let c = 0; c < CELLS_PER_DAY; c++) next[d][c] = c >= from && c < to;
     onGridChange(next, true);
-    setPresetsOpen(false);
+    close();
+  };
+
+  const clearDay = () => {
+    const next = cloneGrid(grid);
+    const days = selectedDay !== null ? [selectedDay] : [0, 1, 2, 3, 4, 5, 6];
+    for (const d of days) next[d] = Array(CELLS_PER_DAY).fill(false);
+    onGridChange(next, true);
+    close();
   };
 
   const copyDay = (targetDay: number) => {
@@ -66,46 +64,43 @@ export default function AvailabilityToolbar({
     setCopySource(null);
   };
 
-  const clearDay = () => {
-    const next = cloneGrid(grid);
-    const days = selectedDay !== null ? [selectedDay] : [0, 1, 2, 3, 4, 5, 6];
-    for (const d of days) next[d] = Array(CELLS_PER_DAY).fill(false);
-    onGridChange(next, true);
-  };
-
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
+
       {/* Presets */}
       <div className="relative">
         <Button
-          variant="outline"
-          size="sm"
+          variant="outline" size="sm"
           onClick={() => { setPresetsOpen((o) => !o); setCopyMenuOpen(false); }}
-          className="gap-1"
+          className={cn("gap-1.5 border-dashed", presetsOpen && "border-[var(--primary-600)] text-[var(--primary-600)]")}
         >
+          <Sparkles className="h-3.5 w-3.5" />
           پیش‌تنظیم
-          <ChevronDown className="h-3.5 w-3.5" />
+          <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", presetsOpen && "rotate-180")} />
         </Button>
         {presetsOpen && (
-          <div className="absolute top-full mt-1 right-0 z-20 bg-white border border-[var(--border)] rounded-lg shadow-lg p-1 min-w-[160px]">
-            <p className="text-[11px] text-[var(--muted-foreground)] px-2 py-1">
+          <div className="absolute top-full mt-2 right-0 z-30 bg-white border border-[var(--border)] rounded-xl shadow-xl p-3 min-w-[200px]">
+            <p className="text-[11px] font-medium text-[var(--muted-foreground)] mb-2 px-1">
               {selectedDay !== null ? `اعمال روی ${DAY_NAMES[selectedDay]}` : "اعمال روی همه روزها"}
             </p>
-            {PRESETS.map((p) => (
-              <button
-                key={p.label}
-                onClick={() => applyPreset(p.from, p.to)}
-                className="w-full text-right px-3 py-1.5 text-sm rounded hover:bg-[var(--muted)] transition-colors"
-              >
-                {p.label}
-              </button>
-            ))}
-            <button
-              onClick={clearDay}
-              className="w-full text-right px-3 py-1.5 text-sm rounded hover:bg-[var(--muted)] text-red-500 transition-colors"
-            >
-              پاک کردن
-            </button>
+            <div className="space-y-1">
+              {PRESETS.map((p) => (
+                <button key={p.label} onClick={() => applyPreset(p.from, p.to)}
+                  className={cn("w-full text-right px-3 py-2 text-sm rounded-lg transition-colors flex items-center justify-between", p.color)}
+                >
+                  <span className="font-medium">{p.label}</span>
+                  <span className="text-xs opacity-70">{p.sublabel}</span>
+                </button>
+              ))}
+              <div className="border-t border-[var(--border)] mt-1 pt-1">
+                <button onClick={clearDay}
+                  className="w-full text-right px-3 py-2 text-sm rounded-lg text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  پاک کردن
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -113,89 +108,63 @@ export default function AvailabilityToolbar({
       {/* Copy day */}
       <div className="relative">
         <Button
-          variant="outline"
-          size="sm"
+          variant="outline" size="sm"
           onClick={() => { setCopyMenuOpen((o) => !o); setPresetsOpen(false); }}
-          className="gap-1"
+          className={cn("gap-1.5", copyMenuOpen && "border-[var(--primary-600)] text-[var(--primary-600)]")}
         >
           <Copy className="h-3.5 w-3.5" />
           کپی روز
-          <ChevronDown className="h-3.5 w-3.5" />
+          <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", copyMenuOpen && "rotate-180")} />
         </Button>
         {copyMenuOpen && (
-          <div className="absolute top-full mt-1 right-0 z-20 bg-white border border-[var(--border)] rounded-lg shadow-lg p-2 min-w-[200px]">
+          <div className="absolute top-full mt-2 right-0 z-30 bg-white border border-[var(--border)] rounded-xl shadow-xl p-3 min-w-[180px]">
             {copySource === null ? (
               <>
-                <p className="text-[11px] text-[var(--muted-foreground)] px-1 pb-1">انتخاب روز مبدأ:</p>
+                <p className="text-[11px] font-medium text-[var(--muted-foreground)] mb-2 px-1">انتخاب روز مبدأ:</p>
                 {DAY_NAMES.map((name, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCopySource(i)}
-                    className="w-full text-right px-2 py-1.5 text-sm rounded hover:bg-[var(--muted)] transition-colors"
-                  >
-                    {name}
-                  </button>
+                  <button key={i} onClick={() => setCopySource(i)}
+                    className="w-full text-right px-3 py-1.5 text-sm rounded-lg hover:bg-[var(--muted)] transition-colors"
+                  >{name}</button>
                 ))}
               </>
             ) : (
               <>
-                <p className="text-[11px] text-[var(--muted-foreground)] px-1 pb-1">
-                  کپی از {DAY_NAMES[copySource]} به:
+                <p className="text-[11px] font-medium text-[var(--muted-foreground)] mb-2 px-1">
+                  کپی از <span className="text-[var(--primary-600)]">{DAY_NAMES[copySource]}</span> به:
                 </p>
-                {DAY_NAMES.map((name, i) =>
-                  i === copySource ? null : (
-                    <button
-                      key={i}
-                      onClick={() => copyDay(i)}
-                      className="w-full text-right px-2 py-1.5 text-sm rounded hover:bg-[var(--muted)] transition-colors"
-                    >
-                      {name}
-                    </button>
-                  )
-                )}
-                <button
-                  onClick={() => setCopySource(null)}
-                  className="w-full text-right px-2 py-1.5 text-xs text-[var(--muted-foreground)] rounded hover:bg-[var(--muted)] transition-colors mt-1 border-t border-[var(--border)]"
-                >
-                  انصراف
-                </button>
+                {DAY_NAMES.map((name, i) => i === copySource ? null : (
+                  <button key={i} onClick={() => copyDay(i)}
+                    className="w-full text-right px-3 py-1.5 text-sm rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                  >{name}</button>
+                ))}
+                <button onClick={() => setCopySource(null)}
+                  className="w-full text-right px-3 py-1.5 text-xs text-[var(--muted-foreground)] rounded-lg hover:bg-[var(--muted)] transition-colors mt-1 border-t border-[var(--border)] pt-2"
+                >انصراف</button>
               </>
             )}
           </div>
         )}
       </div>
 
+      {/* Divider */}
+      <div className="h-6 w-px bg-[var(--border)]" />
+
       {/* Undo / Redo */}
       <div className="flex gap-1">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onUndo}
-          disabled={historyIdx <= 0}
-          title="واگرد"
-          className="h-9 w-9"
-        >
-          <Undo2 className="h-4 w-4" />
+        <Button variant="outline" size="icon" onClick={onUndo} disabled={historyIdx <= 0} title="واگرد" className="h-8 w-8">
+          <Undo2 className="h-3.5 w-3.5" />
         </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onRedo}
-          disabled={historyIdx >= history.length - 1}
-          title="تکرار"
-          className="h-9 w-9"
-        >
-          <Redo2 className="h-4 w-4" />
+        <Button variant="outline" size="icon" onClick={onRedo} disabled={historyIdx >= history.length - 1} title="تکرار" className="h-8 w-8">
+          <Redo2 className="h-3.5 w-3.5" />
         </Button>
       </div>
 
-      {/* Spacer */}
       <div className="flex-1" />
 
       {/* Save */}
-      <Button onClick={onSave} disabled={saving} size="sm" className="gap-1.5">
+      <Button onClick={onSave} disabled={saving} size="sm" className="gap-1.5 shadow-sm">
         <Save className="h-4 w-4" />
-        {saving ? "در حال ذخیره..." : "ذخیره"}
+        {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
       </Button>
     </div>
   );

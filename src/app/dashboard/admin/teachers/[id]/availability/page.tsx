@@ -1,15 +1,13 @@
 "use client";
 
 import { use, useState, useEffect, useRef, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Clock } from "lucide-react";
+import { Clock, CalendarDays } from "lucide-react";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 import AvailabilityGrid, {
   slotsToGrid,
   gridToSlots,
   emptyGrid,
   cloneGrid,
-  type Slot,
 } from "@/components/ui/AvailabilityGrid";
 import AvailabilityToolbar from "@/components/ui/AvailabilityToolbar";
 import ExceptionsCard, { type Exception } from "@/components/ui/ExceptionsCard";
@@ -23,7 +21,6 @@ export default function AdminTeacherAvailabilityPage({ params }: { params: Promi
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  // Undo/redo history
   const historyRef = useRef<boolean[][][]>([emptyGrid()]);
   const historyIdxRef = useRef(0);
   const [historySnapshot, setHistorySnapshot] = useState({ history: historyRef.current, idx: 0 });
@@ -74,9 +71,6 @@ export default function AdminTeacherAvailabilityPage({ params }: { params: Promi
     setHistorySnapshot({ history: historyRef.current, idx: historyIdxRef.current });
   };
 
-  // Push to history when grid changes via drag (the grid calls onChange on every cell)
-  // We only push on pointer-up; the grid itself doesn't push — toolbar does for presets/copy.
-  // For drag, we push after pointer-up by listening to the grid's onChange with a debounce.
   const dragTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleGridDrag = useCallback((g: boolean[][]) => {
     setGrid(g);
@@ -86,14 +80,13 @@ export default function AdminTeacherAvailabilityPage({ params }: { params: Promi
 
   const saveSlots = async () => {
     setSaving(true);
-    const slots = gridToSlots(grid);
     const res = await fetch(`/api/teachers/${id}/availability`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slots }),
+      body: JSON.stringify({ slots: gridToSlots(grid) }),
     });
     setSaving(false);
-    if (res.ok) showToast("زمان‌های آزاد ذخیره شد ✓");
+    if (res.ok) showToast("زمان‌های آزاد با موفقیت ذخیره شد ✓");
   };
 
   const addException = async (ex: { date: string; startTime: string | null; endTime: string | null; type: "BLOCKED" }) => {
@@ -113,20 +106,63 @@ export default function AdminTeacherAvailabilityPage({ params }: { params: Promi
     setExceptions((prev) => prev.filter((e) => e.id !== exId));
   };
 
+  // Stats
+  const totalFreeCells = grid.flat().filter(Boolean).length;
+  const totalFreeHours = (totalFreeCells * 30) / 60;
+  const activeDays = grid.filter((row) => row.some(Boolean)).length;
+
   return (
     <div className="min-h-screen bg-[var(--muted)]">
       <DashboardHeader title={`مدیریت زمان آزاد${teacher ? ` — ${teacher.name}` : ""}`} />
 
-      <main className="container mx-auto px-4 py-6 space-y-4 max-w-5xl">
+      <main className="container mx-auto px-4 py-6 space-y-5 max-w-5xl">
+
+        {/* Stats strip */}
+        {totalFreeCells > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="bg-white rounded-xl border border-[var(--border)] px-4 py-3 flex items-center gap-3 shadow-sm">
+              <span className="h-9 w-9 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                <Clock className="h-4 w-4 text-emerald-600" />
+              </span>
+              <div>
+                <p className="text-xs text-[var(--muted-foreground)]">ساعت آزاد در هفته</p>
+                <p className="text-lg font-bold text-emerald-600">{totalFreeHours}</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl border border-[var(--border)] px-4 py-3 flex items-center gap-3 shadow-sm">
+              <span className="h-9 w-9 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                <CalendarDays className="h-4 w-4 text-blue-600" />
+              </span>
+              <div>
+                <p className="text-xs text-[var(--muted-foreground)]">روز فعال در هفته</p>
+                <p className="text-lg font-bold text-blue-600">{activeDays}</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl border border-[var(--border)] px-4 py-3 flex items-center gap-3 shadow-sm col-span-2 sm:col-span-1">
+              <span className="h-9 w-9 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+                <CalendarDays className="h-4 w-4 text-red-500" />
+              </span>
+              <div>
+                <p className="text-xs text-[var(--muted-foreground)]">استثناهای ثبت‌شده</p>
+                <p className="text-lg font-bold text-red-500">{exceptions.filter(e => e.type === "BLOCKED").length}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Grid card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Clock className="h-5 w-5" />
-              زمان‌های آزاد هفتگی
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <div className="bg-white rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden">
+          {/* Card header */}
+          <div className="px-5 py-4 border-b border-[var(--border)] bg-gradient-to-l from-emerald-50 to-white flex items-center gap-2">
+            <span className="h-8 w-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+              <Clock className="h-4 w-4 text-emerald-600" />
+            </span>
+            <div>
+              <h2 className="font-semibold text-[var(--foreground)]">زمان‌های آزاد هفتگی</h2>
+              <p className="text-xs text-[var(--muted-foreground)]">روی سلول‌ها کلیک کنید یا بکشید تا زمان آزاد تعریف کنید</p>
+            </div>
+          </div>
+          <div className="p-4 space-y-3">
             <AvailabilityToolbar
               grid={grid}
               selectedDay={selectedDay}
@@ -144,8 +180,8 @@ export default function AdminTeacherAvailabilityPage({ params }: { params: Promi
               selectedDay={selectedDay}
               onSelectDay={setSelectedDay}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Exceptions */}
         <ExceptionsCard
@@ -157,7 +193,7 @@ export default function AdminTeacherAvailabilityPage({ params }: { params: Promi
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--primary-600)] text-white text-sm px-5 py-2.5 rounded-full shadow-lg animate-in fade-in slide-in-from-bottom-2">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white text-sm px-6 py-3 rounded-full shadow-xl flex items-center gap-2">
           {toast}
         </div>
       )}
