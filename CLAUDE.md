@@ -126,21 +126,17 @@ Path alias: `@/*` → `src/*`
 
 ## VPS Deployment
 
-The site runs on a VPS accessible via `ssh vps-ir`.
+- VPS SSH alias: `ssh vps-ir` (194.60.230.210)
+- Project path on VPS: `/var/www/rashed`
+- Repo cloned via HTTPS: `https://github.com/erfannorozi54/Rashed.git`
+- `.env` file must exist at `/var/www/rashed/.env` (not in git — restore manually if re-cloning)
 
-**To deploy updates:**
+**To deploy updates after pushing to GitHub:**
 ```bash
-# 1. SSH into the VPS
-ssh vps-ir
-
-# 2. Pull latest changes
-cd /var/www/rashed && git pull origin main
-
-# 3. Rebuild and restart with Docker Compose
-docker compose up -d --build
+ssh vps-ir "cd /var/www/rashed && git pull origin main && docker compose up -d --build"
 ```
 
-All services (app + database) are managed exclusively via `docker compose up -d`. Do not use any other deployment method.
+All services (app + database) are managed exclusively via `docker compose up -d`. Do not use rsync or any other deployment method.
 
 ---
 
