@@ -54,8 +54,11 @@ export default function ExceptionsCard({ exceptions, onAdd, onDelete }: Props) {
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <CalendarOff className="h-5 w-5" />
-          روزهای استثنا (غیرفعال)
+          استثناهای تقویم
         </CardTitle>
+        <p className="text-sm text-[var(--muted-foreground)] mt-1">
+          روزها یا بازه‌های زمانی خاصی را که معلم در آن‌ها در دسترس <span className="font-medium text-red-500">نیست</span> ثبت کنید — مثلاً مرخصی، بیماری، یا تعطیلات.
+        </p>
       </CardHeader>
 
       <CardContent className="space-y-4">
