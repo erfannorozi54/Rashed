@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
-import { LogOut, BookOpen, ChevronLeft, ChevronDown } from "lucide-react";
+import { LogOut, BookOpen, ChevronRight, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Logo } from "@/components/ui/Logo";
@@ -85,7 +85,7 @@ export default function DashboardHeader({ title, backHref }: DashboardHeaderProp
                                 onClick={() => backHref ? router.push(backHref) : router.back()}
                                 className="flex items-center gap-1"
                             >
-                                <ChevronLeft className="h-4 w-4" />
+                                <ChevronRight className="h-4 w-4" />
                                 <span className="hidden sm:inline">بازگشت</span>
                             </Button>
                         )}
@@ -108,7 +108,7 @@ export default function DashboardHeader({ title, backHref }: DashboardHeaderProp
                             </button>
 
                             {dropdownOpen && (
-                                <div className="absolute left-0 mt-2 w-52 bg-white rounded-xl border border-[var(--border)] shadow-lg py-1 z-50">
+                                <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl border border-[var(--border)] shadow-lg py-1 z-50">
                                     {/* User info header */}
                                     <div className="px-4 py-3 border-b border-[var(--border)]">
                                         <p className="font-semibold text-sm text-[var(--foreground)] truncate">
