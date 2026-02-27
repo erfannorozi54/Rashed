@@ -10,11 +10,12 @@ import { Logo } from "@/components/ui/Logo";
 
 interface DashboardHeaderProps {
     title?: string;
+    backHref?: string;
 }
 
 const MAIN_DASHBOARD_PATHS = ["/dashboard/admin", "/dashboard/teacher", "/dashboard/student"];
 
-export default function DashboardHeader({ title }: DashboardHeaderProps) {
+export default function DashboardHeader({ title, backHref }: DashboardHeaderProps) {
     const { data: session } = useSession();
     const pathname = usePathname();
     const router = useRouter();
@@ -81,7 +82,7 @@ export default function DashboardHeader({ title }: DashboardHeaderProps) {
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => router.push(pathname.split("/").slice(0, -1).join("/") || "/dashboard")}
+                                onClick={() => backHref ? router.push(backHref) : router.back()}
                                 className="flex items-center gap-1"
                             >
                                 <ChevronLeft className="h-4 w-4" />
