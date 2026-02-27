@@ -1,243 +1,166 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import { use, useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { Label } from "@/components/ui/Label";
-import { Clock, Plus, Trash2, CalendarOff, Ban } from "lucide-react";
+import { Clock } from "lucide-react";
 import DashboardHeader from "@/components/layout/DashboardHeader";
-import { toJalali } from "@/lib/jalali-utils";
-import WeeklySchedulePreview, { type DaySchedule } from "@/components/ui/WeeklySchedulePreview";
-
-const DAY_NAMES = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"];
-
-interface Slot { dayOfWeek: number; startTime: string; endTime: string }
-interface Exception { id: string; date: string; type: string; startTime: string | null; endTime: string | null }
+import AvailabilityGrid, {
+  slotsToGrid,
+  gridToSlots,
+  emptyGrid,
+  cloneGrid,
+  type Slot,
+} from "@/components/ui/AvailabilityGrid";
+import AvailabilityToolbar from "@/components/ui/AvailabilityToolbar";
+import ExceptionsCard, { type Exception } from "@/components/ui/ExceptionsCard";
 
 export default function AdminTeacherAvailabilityPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = use(params);
-    const [teacher, setTeacher] = useState<{ name: string; role: string } | null>(null);
-    const [slots, setSlots] = useState<Slot[]>([]);
-    const [exceptions, setExceptions] = useState<Exception[]>([]);
-    const [schedule, setSchedule] = useState<DaySchedule[]>([]);
-    const [saving, setSaving] = useState(false);
+  const { id } = use(params);
+  const [teacher, setTeacher] = useState<{ name: string } | null>(null);
+  const [grid, setGrid] = useState<boolean[][]>(emptyGrid());
+  const [exceptions, setExceptions] = useState<Exception[]>([]);
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
-    const [exDate, setExDate] = useState("");
-    const [exStart, setExStart] = useState("");
-    const [exEnd, setExEnd] = useState("");
-    const [exType, setExType] = useState<"BLOCKED" | "BUSY">("BLOCKED");
+  // Undo/redo history
+  const historyRef = useRef<boolean[][][]>([emptyGrid()]);
+  const historyIdxRef = useRef(0);
+  const [historySnapshot, setHistorySnapshot] = useState({ history: historyRef.current, idx: 0 });
 
-    const fetchSchedule = () =>
-        fetch(`/api/teachers/${id}/availability/weekly-schedule`).then((r) => r.json()).then((d) => setSchedule(d.schedule || []));
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2500);
+  };
 
-    useEffect(() => {
-        fetch(`/api/users/${id}`).then((r) => r.json()).then(setTeacher);
-        fetch(`/api/teachers/${id}/availability`).then((r) => r.json()).then((d) => {
-            setSlots(d.slots || []);
-            setExceptions(d.exceptions || []);
-        });
-        fetchSchedule();
-    }, [id]);
+  useEffect(() => {
+    fetch(`/api/users/${id}`).then((r) => r.json()).then(setTeacher);
+    fetch(`/api/teachers/${id}/availability`).then((r) => r.json()).then((d) => {
+      const g = slotsToGrid(d.slots || []);
+      setGrid(g);
+      historyRef.current = [cloneGrid(g)];
+      historyIdxRef.current = 0;
+      setHistorySnapshot({ history: historyRef.current, idx: 0 });
+      setExceptions(d.exceptions || []);
+    });
+  }, [id]);
 
-    const addSlot = (day: number) => setSlots([...slots, { dayOfWeek: day, startTime: "09:00", endTime: "10:00" }]);
-    const removeSlot = (i: number) => setSlots(slots.filter((_, idx) => idx !== i));
-    const updateSlot = (i: number, field: string, val: string) => {
-        const next = [...slots];
-        next[i] = { ...next[i], [field]: val };
-        setSlots(next);
-    };
+  const pushHistory = useCallback((g: boolean[][]) => {
+    const h = historyRef.current.slice(0, historyIdxRef.current + 1);
+    h.push(cloneGrid(g));
+    historyRef.current = h;
+    historyIdxRef.current = h.length - 1;
+    setHistorySnapshot({ history: h, idx: historyIdxRef.current });
+  }, []);
 
-    const saveSlots = async () => {
-        setSaving(true);
-        await fetch(`/api/teachers/${id}/availability`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ slots }),
-        });
-        await fetchSchedule();
-        setSaving(false);
-    };
+  const handleGridChange = useCallback((g: boolean[][], push = false) => {
+    setGrid(g);
+    if (push) pushHistory(g);
+  }, [pushHistory]);
 
-    const addException = async () => {
-        if (!exDate || (!exStart && exType === "BUSY")) return;
-        const res = await fetch(`/api/teachers/${id}/availability/exceptions`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ date: exDate, startTime: exStart || null, endTime: exEnd || null, type: exType }),
-        });
-        if (res.ok) {
-            const data = await res.json();
-            setExceptions([...exceptions, data.exception]);
-            setExDate(""); setExStart(""); setExEnd("");
-            await fetchSchedule();
-        }
-    };
+  const handleUndo = () => {
+    if (historyIdxRef.current <= 0) return;
+    historyIdxRef.current--;
+    const g = cloneGrid(historyRef.current[historyIdxRef.current]);
+    setGrid(g);
+    setHistorySnapshot({ history: historyRef.current, idx: historyIdxRef.current });
+  };
 
-    const deleteException = async (exId: string) => {
-        await fetch(`/api/teachers/${id}/availability/exceptions/${exId}`, { method: "DELETE" });
-        setExceptions(exceptions.filter((e) => e.id !== exId));
-        await fetchSchedule();
-    };
+  const handleRedo = () => {
+    if (historyIdxRef.current >= historyRef.current.length - 1) return;
+    historyIdxRef.current++;
+    const g = cloneGrid(historyRef.current[historyIdxRef.current]);
+    setGrid(g);
+    setHistorySnapshot({ history: historyRef.current, idx: historyIdxRef.current });
+  };
 
-    const blockedExceptions = exceptions.filter((e) => e.type !== "BUSY");
-    const busyExceptions = exceptions.filter((e) => e.type === "BUSY");
+  // Push to history when grid changes via drag (the grid calls onChange on every cell)
+  // We only push on pointer-up; the grid itself doesn't push — toolbar does for presets/copy.
+  // For drag, we push after pointer-up by listening to the grid's onChange with a debounce.
+  const dragTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleGridDrag = useCallback((g: boolean[][]) => {
+    setGrid(g);
+    if (dragTimerRef.current) clearTimeout(dragTimerRef.current);
+    dragTimerRef.current = setTimeout(() => pushHistory(g), 300);
+  }, [pushHistory]);
 
-    return (
-        <div className="min-h-screen bg-[var(--muted)]">
-            <DashboardHeader title={`مدیریت زمان آزاد${teacher ? ` — ${teacher.name}` : ""}`} />
-            <main className="container mx-auto px-4 py-8 space-y-6">
-                {/* Weekly Preview */}
-                {schedule.length > 0 && (
-                    <Card>
-                        <CardHeader><CardTitle>پیش‌نمایش هفتگی</CardTitle></CardHeader>
-                        <CardContent>
-                            <WeeklySchedulePreview schedule={schedule} />
-                        </CardContent>
-                    </Card>
-                )}
+  const saveSlots = async () => {
+    setSaving(true);
+    const slots = gridToSlots(grid);
+    const res = await fetch(`/api/teachers/${id}/availability`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slots }),
+    });
+    setSaving(false);
+    if (res.ok) showToast("زمان‌های آزاد ذخیره شد ✓");
+  };
 
-                {/* Recurring Slots */}
-                <Card>
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <CardTitle className="flex items-center gap-2">
-                                <Clock className="h-5 w-5" />
-                                زمان‌های آزاد هفتگی
-                            </CardTitle>
-                            <Button onClick={saveSlots} disabled={saving}>
-                                {saving ? "ذخیره..." : "ذخیره تغییرات"}
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {DAY_NAMES.map((name, day) => {
-                                const daySlots = slots.map((s, i) => ({ ...s, idx: i })).filter((s) => s.dayOfWeek === day);
-                                return (
-                                    <div key={day} className="p-3 rounded-lg border border-[var(--border)]">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="font-medium">{name}</span>
-                                            <Button size="sm" variant="ghost" onClick={() => addSlot(day)}>
-                                                <Plus className="h-4 w-4 ml-1" />
-                                                افزودن
-                                            </Button>
-                                        </div>
-                                        {daySlots.length === 0 ? (
-                                            <p className="text-sm text-[var(--muted-foreground)]">تعطیل</p>
-                                        ) : (
-                                            <div className="space-y-2">
-                                                {daySlots.map((s) => (
-                                                    <div key={s.idx} className="flex items-center gap-2">
-                                                        <Input type="time" value={s.startTime} onChange={(e) => updateSlot(s.idx, "startTime", e.target.value)} className="w-32" />
-                                                        <span className="text-sm">تا</span>
-                                                        <Input type="time" value={s.endTime} onChange={(e) => updateSlot(s.idx, "endTime", e.target.value)} className="w-32" />
-                                                        <Button size="sm" variant="ghost" onClick={() => removeSlot(s.idx)} className="text-red-500">
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </CardContent>
-                </Card>
+  const addException = async (ex: { date: string; startTime: string | null; endTime: string | null; type: "BLOCKED" | "BUSY" }) => {
+    const res = await fetch(`/api/teachers/${id}/availability/exceptions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(ex),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setExceptions((prev) => [...prev, data.exception]);
+    }
+  };
 
-                {/* Blocked Exceptions */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <CalendarOff className="h-5 w-5" />
-                            استثناها (روزهای بسته)
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex items-end gap-3 flex-wrap">
-                            <div className="space-y-1">
-                                <Label>تاریخ</Label>
-                                <Input type="date" value={exType === "BLOCKED" ? exDate : ""} onChange={(e) => { setExDate(e.target.value); setExType("BLOCKED"); }} className="w-40" />
-                            </div>
-                            <div className="space-y-1">
-                                <Label>از ساعت (خالی = کل روز)</Label>
-                                <Input type="time" value={exType === "BLOCKED" ? exStart : ""} onChange={(e) => { setExStart(e.target.value); setExType("BLOCKED"); }} className="w-32" />
-                            </div>
-                            <div className="space-y-1">
-                                <Label>تا ساعت</Label>
-                                <Input type="time" value={exType === "BLOCKED" ? exEnd : ""} onChange={(e) => { setExEnd(e.target.value); setExType("BLOCKED"); }} className="w-32" />
-                            </div>
-                            <Button onClick={() => { setExType("BLOCKED"); addException(); }}>افزودن</Button>
-                        </div>
-                        {blockedExceptions.length === 0 ? (
-                            <p className="text-sm text-[var(--muted-foreground)]">استثنایی ثبت نشده</p>
-                        ) : (
-                            <div className="space-y-2">
-                                {blockedExceptions.map((ex) => (
-                                    <div key={ex.id} className="flex items-center justify-between p-3 rounded border border-[var(--border)]">
-                                        <div>
-                                            <span className="font-medium">{toJalali(ex.date)}</span>
-                                            <span className="text-sm text-[var(--muted-foreground)] mr-2">
-                                                {ex.startTime && ex.endTime ? `${ex.startTime} تا ${ex.endTime}` : "کل روز"}
-                                            </span>
-                                        </div>
-                                        <Button size="sm" variant="ghost" onClick={() => deleteException(ex.id)} className="text-red-500">
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+  const deleteException = async (exId: string) => {
+    await fetch(`/api/teachers/${id}/availability/exceptions/${exId}`, { method: "DELETE" });
+    setExceptions((prev) => prev.filter((e) => e.id !== exId));
+  };
 
-                {/* Busy Blocks */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Ban className="h-5 w-5" />
-                            زمان‌های مشغول (دستی)
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex items-end gap-3 flex-wrap">
-                            <div className="space-y-1">
-                                <Label>تاریخ</Label>
-                                <Input type="date" value={exType === "BUSY" ? exDate : ""} onChange={(e) => { setExDate(e.target.value); setExType("BUSY"); }} className="w-40" />
-                            </div>
-                            <div className="space-y-1">
-                                <Label>از ساعت</Label>
-                                <Input type="time" value={exType === "BUSY" ? exStart : ""} onChange={(e) => { setExStart(e.target.value); setExType("BUSY"); }} className="w-32" />
-                            </div>
-                            <div className="space-y-1">
-                                <Label>تا ساعت</Label>
-                                <Input type="time" value={exType === "BUSY" ? exEnd : ""} onChange={(e) => { setExEnd(e.target.value); setExType("BUSY"); }} className="w-32" />
-                            </div>
-                            <Button onClick={() => { setExType("BUSY"); addException(); }}>افزودن</Button>
-                        </div>
-                        {busyExceptions.length === 0 ? (
-                            <p className="text-sm text-[var(--muted-foreground)]">زمان مشغولی ثبت نشده</p>
-                        ) : (
-                            <div className="space-y-2">
-                                {busyExceptions.map((ex) => (
-                                    <div key={ex.id} className="flex items-center justify-between p-3 rounded border border-red-200 bg-red-50">
-                                        <div>
-                                            <span className="font-medium">{toJalali(ex.date)}</span>
-                                            <span className="text-sm text-[var(--muted-foreground)] mr-2">
-                                                {ex.startTime && ex.endTime ? `${ex.startTime} تا ${ex.endTime}` : ""}
-                                            </span>
-                                        </div>
-                                        <Button size="sm" variant="ghost" onClick={() => deleteException(ex.id)} className="text-red-500">
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-            </main>
+  return (
+    <div className="min-h-screen bg-[var(--muted)]">
+      <DashboardHeader title={`مدیریت زمان آزاد${teacher ? ` — ${teacher.name}` : ""}`} />
+
+      <main className="container mx-auto px-4 py-6 space-y-4 max-w-5xl">
+        {/* Grid card */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Clock className="h-5 w-5" />
+              زمان‌های آزاد هفتگی
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <AvailabilityToolbar
+              grid={grid}
+              selectedDay={selectedDay}
+              history={historySnapshot.history}
+              historyIdx={historySnapshot.idx}
+              onGridChange={handleGridChange}
+              onUndo={handleUndo}
+              onRedo={handleRedo}
+              onSave={saveSlots}
+              saving={saving}
+            />
+            <AvailabilityGrid
+              grid={grid}
+              onChange={handleGridDrag}
+              selectedDay={selectedDay}
+              onSelectDay={setSelectedDay}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Exceptions */}
+        <ExceptionsCard
+          exceptions={exceptions}
+          onAdd={addException}
+          onDelete={deleteException}
+        />
+      </main>
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--primary-600)] text-white text-sm px-5 py-2.5 rounded-full shadow-lg animate-in fade-in slide-in-from-bottom-2">
+          {toast}
         </div>
-    );
+      )}
+    </div>
+  );
 }
