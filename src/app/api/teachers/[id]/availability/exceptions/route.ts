@@ -17,11 +17,17 @@ export async function POST(
             return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
         }
 
-        const { date, startTime, endTime } = await request.json();
+        const { date, startTime, endTime, type } = await request.json();
         if (!date) return NextResponse.json({ error: "تاریخ الزامی است" }, { status: 400 });
 
         const exception = await prisma.availabilityException.create({
-            data: { teacherId, date: new Date(date), startTime: startTime || null, endTime: endTime || null },
+            data: {
+                teacherId,
+                date: new Date(date),
+                type: type === "BUSY" ? "BUSY" : "BLOCKED",
+                startTime: startTime || null,
+                endTime: endTime || null,
+            },
         });
 
         return NextResponse.json({ exception }, { status: 201 });

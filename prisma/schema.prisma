@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -51,6 +52,11 @@ enum RefundStatus {
 enum FeeHandling {
   DEBT
   PAID
+}
+
+enum ExceptionType {
+  BLOCKED
+  BUSY
 }
 
 model User {
@@ -274,11 +280,12 @@ model TeacherAvailability {
 }
 
 model AvailabilityException {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   teacherId String
-  date      DateTime @db.Date
-  startTime String?  // null = full day block
-  endTime   String?  // null = full day block
+  date      DateTime      @db.Date
+  type      ExceptionType @default(BLOCKED)
+  startTime String?       // null = full day block
+  endTime   String?       // null = full day block
 
   teacher User @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 

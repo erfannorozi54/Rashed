@@ -12,6 +12,7 @@ interface Teacher {
     id: string;
     name: string;
     phone: string;
+    role: string;
     createdAt: string;
 }
 
@@ -31,11 +32,13 @@ export default function TeachersPage() {
 
     const fetchTeachers = async () => {
         try {
-            const response = await fetch("/api/users?role=TEACHER");
-            const data = await response.json();
-            if (response.ok) {
-                setTeachers(data.users || []);
-            }
+            const [teacherRes, adminRes] = await Promise.all([
+                fetch("/api/users?role=TEACHER"),
+                fetch("/api/users?role=ADMIN"),
+            ]);
+            const teacherData = await teacherRes.json();
+            const adminData = await adminRes.json();
+            setTeachers([...(adminData.users || []), ...(teacherData.users || [])]);
         } catch (error) {
             console.error("Error fetching teachers:", error);
         } finally {
@@ -49,15 +52,15 @@ export default function TeachersPage() {
 
     return (
         <div className="min-h-screen bg-[var(--muted)]">
-            <DashboardHeader title="معلمان" />
+            <DashboardHeader title="اساتید و مدیران" />
 
             <main className="container mx-auto px-4 py-8">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
-                        معلمان
+                        اساتید و مدیران
                     </h1>
                     <p className="text-[var(--muted-foreground)]">
-                        مشاهده و مدیریت معلمان سیستم
+                        مشاهده و مدیریت زمان آزاد اساتید و مدیران
                     </p>
                 </div>
 
@@ -65,10 +68,10 @@ export default function TeachersPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <GraduationCap className="h-5 w-5 text-[var(--secondary-600)]" />
-                            لیست معلمان ({teachers.length})
+                            لیست اساتید و مدیران ({teachers.length})
                         </CardTitle>
                         <CardDescription>
-                            تمامی معلمان ثبت‌نام شده
+                            تمامی اساتید و مدیران ثبت‌نام شده
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -78,7 +81,7 @@ export default function TeachersPage() {
                             </div>
                         ) : teachers.length === 0 ? (
                             <p className="text-center text-[var(--muted-foreground)] py-8">
-                                هیچ معلمی یافت نشد
+                                هیچ کاربری یافت نشد
                             </p>
                         ) : (
                             <div className="overflow-x-auto">
@@ -86,6 +89,7 @@ export default function TeachersPage() {
                                     <thead>
                                         <tr className="border-b border-[var(--border)]">
                                             <th className="text-right p-3 text-sm font-semibold">نام</th>
+                                            <th className="text-right p-3 text-sm font-semibold">نقش</th>
                                             <th className="text-right p-3 text-sm font-semibold">شماره تلفن</th>
                                             <th className="text-right p-3 text-sm font-semibold">تاریخ ثبت‌نام</th>
                                             <th className="text-right p-3 text-sm font-semibold">عملیات</th>
@@ -94,8 +98,15 @@ export default function TeachersPage() {
                                     <tbody>
                                         {teachers.map((teacher) => (
                                             <tr key={teacher.id} className="border-b border-[var(--border)] hover:bg-[var(--muted)]">
+                                                <td className="p-3 text-sm">{teacher.name}</td>
                                                 <td className="p-3 text-sm">
-                                                    {teacher.name}
+                                                    <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                                                        teacher.role === "ADMIN"
+                                                            ? "bg-red-100 text-red-700"
+                                                            : "bg-blue-100 text-blue-700"
+                                                    }`}>
+                                                        {teacher.role === "ADMIN" ? "مدیر" : "معلم"}
+                                                    </span>
                                                 </td>
                                                 <td className="p-3 text-sm font-mono">{teacher.phone}</td>
                                                 <td className="p-3 text-sm">
