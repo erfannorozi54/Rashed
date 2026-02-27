@@ -96,7 +96,7 @@ export default function AdminTeacherAvailabilityPage({ params }: { params: Promi
     if (res.ok) showToast("زمان‌های آزاد ذخیره شد ✓");
   };
 
-  const addException = async (ex: { date: string; startTime: string | null; endTime: string | null; type: "BLOCKED" | "BUSY" }) => {
+  const addException = async (ex: { date: string; startTime: string | null; endTime: string | null; type: "BLOCKED" }) => {
     const res = await fetch(`/api/teachers/${id}/availability/exceptions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

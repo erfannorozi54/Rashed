@@ -152,10 +152,10 @@ export default function AvailabilityGrid({ grid, onChange, selectedDay, onSelect
       )}
 
       {/* Grid */}
-      <div className="overflow-x-auto rounded-xl border border-[var(--border)] bg-white shadow-sm">
+      <div className="rounded-xl border border-[var(--border)] bg-white shadow-sm overflow-hidden">
         <div
           ref={gridRef}
-          className="min-w-[640px] select-none"
+          className="w-full select-none"
           style={{ touchAction: "none" }}
           onPointerMove={handlePointerMove}
         >
@@ -181,7 +181,9 @@ export default function AvailabilityGrid({ grid, onChange, selectedDay, onSelect
               key={day}
               className={cn(
                 "flex items-center border-t border-[var(--border)] first:border-t-0",
-                !mobile && selectedDay === day && "bg-[var(--primary-50)]"
+                !mobile && selectedDay === day && "bg-[var(--primary-50)]",
+                !mobile && selectedDay !== day && day === 6 && "bg-amber-50/60",
+                !mobile && selectedDay !== day && day === 5 && "bg-amber-50/30",
               )}
             >
               {!mobile && (
@@ -190,7 +192,11 @@ export default function AvailabilityGrid({ grid, onChange, selectedDay, onSelect
                   className={cn(
                     "w-20 shrink-0 py-3 px-2 text-xs font-medium text-right transition-colors",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--primary-600)]",
-                    selectedDay === day ? "text-[var(--primary-600)]" : "text-[var(--foreground)] hover:text-[var(--primary-600)]"
+                    selectedDay === day
+                      ? "text-[var(--primary-600)]"
+                      : day >= 5
+                      ? "text-amber-600 hover:text-[var(--primary-600)]"
+                      : "text-[var(--foreground)] hover:text-[var(--primary-600)]"
                   )}
                 >
                   {DAY_NAMES[day]}
