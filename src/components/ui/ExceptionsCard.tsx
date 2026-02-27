@@ -57,7 +57,7 @@ export default function ExceptionsCard({ exceptions, onAdd, onDelete }: Props) {
           استثناهای تقویم
         </CardTitle>
         <p className="text-sm text-[var(--muted-foreground)] mt-1">
-          روزها یا بازه‌های زمانی خاصی را که معلم در آن‌ها در دسترس <span className="font-medium text-red-500">نیست</span> ثبت کنید — مثلاً مرخصی، بیماری، یا تعطیلات.
+          روزها یا بازه‌های زمانی که در آن وقت خالی ندارید.
         </p>
       </CardHeader>
 
