@@ -124,6 +124,26 @@ Path alias: `@/*` → `src/*`
 
 ---
 
+## VPS Deployment
+
+The site runs on a VPS accessible via `ssh vps-ir`.
+
+**To deploy updates:**
+```bash
+# 1. SSH into the VPS
+ssh vps-ir
+
+# 2. Pull latest changes
+cd /var/www/rashed && git pull origin main
+
+# 3. Rebuild and restart with Docker Compose
+docker compose up -d --build
+```
+
+All services (app + database) are managed exclusively via `docker compose up -d`. Do not use any other deployment method.
+
+---
+
 ## Dev Notes
 
 ```bash
