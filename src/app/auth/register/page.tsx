@@ -128,11 +128,11 @@ export default function RegisterPage() {
         return () => clearTimeout(t);
     }, [countdown]);
 
-    const sendOtp = useCallback(async (phoneNumber: string) => {
+    const sendOtp = useCallback(async (phoneNumber: string, name?: string) => {
         return fetch("/api/auth/send-otp", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ phone: phoneNumber, purpose: "register" }),
+            body: JSON.stringify({ phone: phoneNumber, purpose: "register", firstName: name }),
         });
     }, []);
 
@@ -141,7 +141,7 @@ export default function RegisterPage() {
         setError("");
         setLoading(true);
         try {
-            const res  = await sendOtp(phone);
+            const res  = await sendOtp(phone, firstName);
             const data = await res.json();
             if (!res.ok) { setError(data.error || "خطا در ارسال کد تایید"); return; }
             setCountdown(60);
@@ -180,7 +180,7 @@ export default function RegisterPage() {
         setError("");
         setLoading(true);
         try {
-            const res  = await sendOtp(phone);
+            const res  = await sendOtp(phone, firstName);
             const data = await res.json();
             if (!res.ok) { setError(data.error || "خطا در ارسال مجدد کد"); return; }
             setCountdown(60);

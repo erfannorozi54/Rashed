@@ -5,7 +5,7 @@ import { OTPService } from "@/lib/services/otp.service";
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { phone, purpose } = body; // purpose: 'register' or 'login'
+        const { phone, purpose, firstName } = body; // purpose: 'register' or 'login'
 
         if (!phone) {
             return NextResponse.json(
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Send OTP via SMS
-        const userName = existingUser?.firstName || undefined;
+        const userName = firstName || existingUser?.firstName || "کاربر";
         const smsSent = await OTPService.sendSMS(phone, otp, userName);
 
         if (!smsSent) {
