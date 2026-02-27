@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
-import { GraduationCap, LogOut, BookOpen, ChevronLeft, ChevronDown } from "lucide-react";
+import { LogOut, BookOpen, ChevronLeft, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { Logo } from "@/components/ui/Logo";
 
 interface DashboardHeaderProps {
     title?: string;
@@ -52,10 +53,8 @@ export default function DashboardHeader({ title }: DashboardHeaderProps) {
             <div className="container mx-auto px-4 py-3">
                 <div className="flex items-center justify-between gap-4">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2 shrink-0">
-                        <GraduationCap className="h-7 w-7 text-[var(--primary-600)]" />
-                        <span className="text-lg font-bold hidden md:inline-block">موسسه ریاضی رشد</span>
-                        <span className="text-lg font-bold md:hidden">رشد</span>
+                    <Link href="/" className="shrink-0">
+                        <Logo width={120} height={67} className="h-8 w-auto" />
                     </Link>
 
                     {/* Page title */}

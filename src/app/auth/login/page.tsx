@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/Input";
 import { OtpInput } from "@/components/ui/OtpInput";
 import { cn } from "@/lib/utils";
 import {
-    GraduationCap,
     Phone,
     Lock,
     Eye,
@@ -21,6 +20,7 @@ import {
     LayoutDashboard,
     ChevronLeft,
 } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
 
 // ─── constants ───────────────────────────────────────────────────────────────
 
@@ -183,14 +183,8 @@ function LoginForm() {
                 {/* content */}
                 <div className="relative z-10 text-white w-full flex flex-col items-center px-10 py-12">
                     {/* logo */}
-                    <div className="flex items-center justify-center gap-3 mb-8 w-full">
-                        <div className="w-11 h-11 rounded-2xl bg-white/15 flex items-center justify-center backdrop-blur-sm shrink-0">
-                            <GraduationCap className="w-6 h-6 text-[var(--secondary-300)]" />
-                        </div>
-                        <span className="text-xl font-bold leading-tight text-right">
-                            موسسه ریاضی{" "}
-                            <span className="text-[var(--secondary-300)]">راشد</span>
-                        </span>
+                    <div className="flex items-center justify-center mb-8 w-full">
+                        <Logo width={180} height={100} inverted className="h-14 w-auto" />
                     </div>
 
                     {/* illustration */}
@@ -233,9 +227,8 @@ function LoginForm() {
                 <div className="w-full max-w-md">
                     {/* mobile logo */}
                     <div className="lg:hidden text-center mb-8">
-                        <Link href="/" className="inline-flex items-center gap-2">
-                            <GraduationCap className="h-9 w-9 text-[var(--primary-600)]" />
-                            <span className="text-xl font-bold">موسسه ریاضی راشد</span>
+                        <Link href="/" className="inline-flex">
+                            <Logo width={160} height={89} className="h-12 w-auto" />
                         </Link>
                     </div>
 

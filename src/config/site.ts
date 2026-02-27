@@ -22,7 +22,7 @@ export const siteConfig = {
         "آموزش ریاضی دبستان",
     ],
     url: "https://rashed-math.ir",
-    ogImage: "/og-image.jpg",
+    ogImage: "/og-image.png",
     links: {
         twitter: "https://twitter.com/rashed_math",
         instagram: "https://instagram.com/rashed_math",

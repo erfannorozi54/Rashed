@@ -19,6 +19,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import Script from "next/script";
+import { Logo } from "@/components/ui/Logo";
 
 export default function HomePage() {
   const { data: session, status } = useSession();
@@ -240,21 +241,10 @@ export default function HomePage() {
         <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 rounded-t-[2rem] md:rounded-t-[3rem]">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="flex items-center justify-between h-16 md:h-20">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary-500)] to-[var(--primary-700)] rounded-xl blur-sm opacity-50"></div>
-                  <div className="relative bg-gradient-to-br from-[var(--primary-500)] to-[var(--primary-700)] p-2 rounded-xl">
-                    <GraduationCap className="h-6 w-6 text-white" />
-                  </div>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-lg md:text-xl font-bold text-[var(--foreground)]">
-                    آموزشگاه راشد
-                  </span>
-                  <span className="text-xs text-[var(--muted-foreground)] hidden sm:block">
-                    مرکز تخصصی ریاضیات تبریز
-                  </span>
-                </div>
+              <div className="flex items-center">
+                <Link href="/">
+                  <Logo width={140} height={78} className="h-10 w-auto" />
+                </Link>
               </div>
               <div className="flex items-center gap-2 md:gap-4">
                 <Link href="/blogs" className="hidden sm:block">
@@ -468,16 +458,11 @@ export default function HomePage() {
           <div className="container mx-auto px-4 lg:px-8">
             <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
               <div className="lg:col-span-2">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="bg-gradient-to-br from-[var(--primary-500)] to-[var(--primary-700)] p-2 rounded-xl">
-                    <GraduationCap className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <span className="font-bold text-xl">آموزشگاه راشد</span>
-                    <p className="text-sm text-gray-400">
-                      مرکز تخصصی ریاضیات تبریز
-                    </p>
-                  </div>
+                <div className="mb-6">
+                  <Logo width={160} height={89} inverted className="h-12 w-auto mb-2" />
+                  <p className="text-sm text-gray-400">
+                    مرکز تخصصی ریاضیات تبریز
+                  </p>
                 </div>
                 <p className="text-gray-400 mb-4 max-w-md">
                   بهترین آموزشگاه ریاضی در تبریز با بیش از ۱۰ سال سابقه در آموزش
