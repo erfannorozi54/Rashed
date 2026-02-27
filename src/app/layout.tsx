@@ -28,7 +28,11 @@ const vazirmatn = localFont({
 
 export const metadata: Metadata = {
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/logo-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/logo-512.png", sizes: "512x512", type: "image/png" },
+    ],
     apple: "/apple-touch-icon.png",
   },
   metadataBase: new URL(siteConfig.url),
