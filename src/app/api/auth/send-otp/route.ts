@@ -85,8 +85,9 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // Send OTP via SMS (mocked)
-        const smsSent = await OTPService.sendSMS(phone, otp);
+        // Send OTP via SMS
+        const userName = existingUser?.firstName || undefined;
+        const smsSent = await OTPService.sendSMS(phone, otp, userName);
 
         if (!smsSent) {
             return NextResponse.json(
