@@ -34,7 +34,7 @@ export default function AdminTeacherAvailabilityPage({ params }: { params: Promi
   };
 
   useEffect(() => {
-    fetch(`/api/users/${id}`).then((r) => r.json()).then(setTeacher);
+    fetch(`/api/users/${id}`).then((r) => r.json()).then((d) => setTeacher(d.user ?? d));
     fetch(`/api/teachers/${id}/availability`).then((r) => r.json()).then((d) => {
       const g = slotsToGrid(d.slots || []);
       setGrid(g);
