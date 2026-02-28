@@ -4,8 +4,6 @@ import bcrypt from "bcryptjs";
 import { OTPService } from "@/lib/services/otp.service";
 import { Role } from "@prisma/client";
 
-const ADMIN_PHONE = process.env.ADMIN_PHONE ?? "";
-
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
@@ -80,8 +78,8 @@ export async function POST(request: NextRequest) {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Determine role: ADMIN for hardcoded phone, otherwise STUDENT
-        const userRole = phone === ADMIN_PHONE ? Role.ADMIN : Role.STUDENT;
+        // Determine role: always STUDENT on self-registration
+        const userRole = Role.STUDENT;
 
         // Update user with registration data
         const user = await prisma.user.update({
