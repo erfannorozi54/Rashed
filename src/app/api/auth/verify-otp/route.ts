@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { OTPService } from "@/lib/services/otp.service";
 import { Role } from "@prisma/client";
 
-const ADMIN_PHONE = "REDACTED";
+const ADMIN_PHONE = process.env.ADMIN_PHONE ?? "";
 
 export async function POST(request: NextRequest) {
     try {
