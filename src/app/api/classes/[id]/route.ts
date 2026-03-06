@@ -175,6 +175,33 @@ export async function GET(
     }
 }
 
+export async function DELETE(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const session = await getServerSession(authOptions);
+
+        if (!session || session.user.role !== "ADMIN") {
+            return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
+        }
+
+        const { id: classId } = await params;
+
+        const classData = await prisma.class.findUnique({ where: { id: classId } });
+        if (!classData) {
+            return NextResponse.json({ error: "کلاس یافت نشد" }, { status: 404 });
+        }
+
+        await prisma.class.delete({ where: { id: classId } });
+
+        return NextResponse.json({ message: "کلاس با موفقیت حذف شد" }, { status: 200 });
+    } catch (error) {
+        console.error("Delete class error:", error);
+        return NextResponse.json({ error: "خطا در حذف کلاس" }, { status: 500 });
+    }
+}
+
 export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }

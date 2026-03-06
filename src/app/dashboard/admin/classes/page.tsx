@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { GraduationCap, Users, Plus, Globe, Key, Lock } from "lucide-react";
+import { GraduationCap, Users, Plus, Globe, Key, Lock, Trash2, Pencil } from "lucide-react";
 import Link from "next/link";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 import { cn } from "@/lib/utils";
@@ -70,6 +70,23 @@ export default function ClassesPage() {
         }
     };
 
+    const handleDeleteClass = async (e: React.MouseEvent, classId: string, className: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!confirm(`آیا از حذف کلاس "${className}" اطمینان دارید؟ این عمل قابل بازگشت نیست.`)) return;
+        try {
+            const res = await fetch(`/api/classes/${classId}`, { method: "DELETE" });
+            if (res.ok) {
+                setClasses((prev) => prev.filter((c) => c.id !== classId));
+            } else {
+                const data = await res.json();
+                alert(data.error || "خطا در حذف کلاس");
+            }
+        } catch {
+            alert("خطا در حذف کلاس");
+        }
+    };
+
     if (session?.user?.role !== "ADMIN") {
         return null;
     }
@@ -113,8 +130,8 @@ export default function ClassesPage() {
                         {classes.map((cls) => {
                             const typeConfig = CLASS_TYPE_CONFIG[cls.classType] ?? CLASS_TYPE_CONFIG.PUBLIC;
                             return (
-                                <Link key={cls.id} href={`/dashboard/admin/classes/${cls.id}`}>
-                                    <Card className="hover:shadow-lg transition-all h-full cursor-pointer">
+                                <Card key={cls.id} className="hover:shadow-lg transition-all h-full flex flex-col">
+                                    <Link href={`/dashboard/admin/classes/${cls.id}`} className="flex-1">
                                         <CardHeader>
                                             <div className="flex items-start justify-between gap-2">
                                                 <CardTitle className="flex items-center gap-2 flex-1 min-w-0">
@@ -159,8 +176,24 @@ export default function ClassesPage() {
                                                 </div>
                                             </div>
                                         </CardContent>
-                                    </Card>
-                                </Link>
+                                    </Link>
+                                    <div className="flex gap-2 px-6 pb-4 pt-0 border-t border-[var(--border)] mt-auto">
+                                        <Link href={`/dashboard/admin/classes/${cls.id}/edit`} className="flex-1">
+                                            <Button variant="outline" size="sm" className="w-full gap-1">
+                                                <Pencil className="h-3.5 w-3.5" />
+                                                ویرایش
+                                            </Button>
+                                        </Link>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={(e) => handleDeleteClass(e, cls.id, cls.name)}
+                                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                        >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                        </Button>
+                                    </div>
+                                </Card>
                             );
                         })}
                     </div>

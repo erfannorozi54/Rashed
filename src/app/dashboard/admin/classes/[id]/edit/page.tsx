@@ -9,9 +9,12 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Textarea } from "@/components/ui/Textarea";
 import DashboardHeader from "@/components/layout/DashboardHeader";
-import { Globe, Key, Lock, GraduationCap } from "lucide-react";
+import { Globe, Key, Lock, GraduationCap, Trash2, Plus, Calendar } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import PersianDatePicker from "@/components/ui/PersianDatePicker";
+import { toJalali } from "@/lib/jalali-utils";
+import moment from "moment-jalaali";
 
 type ClassType = "PUBLIC" | "SEMI_PRIVATE" | "PRIVATE";
 
@@ -19,6 +22,14 @@ interface Teacher {
     id: string;
     name: string;
     phone: string;
+}
+
+interface SessionData {
+    id: string;
+    title: string;
+    description: string | null;
+    date: Date;
+    type: string;
 }
 
 const CLASS_TYPE_OPTIONS: { value: ClassType; label: string; description: string; icon: React.ReactNode }[] = [
@@ -50,6 +61,14 @@ export default function AdminEditClassPage({ params }: { params: Promise<{ id: s
     const [selectedTeacherIds, setSelectedTeacherIds] = useState<string[]>([]);
     const [allTeachers, setAllTeachers] = useState<Teacher[]>([]);
 
+    // Sessions
+    const [sessions, setSessions] = useState<SessionData[]>([]);
+    const [savingSessionId, setSavingSessionId] = useState<string | null>(null);
+    const [newSessionTitle, setNewSessionTitle] = useState("");
+    const [newSessionDate, setNewSessionDate] = useState<Date | null>(null);
+    const [newSessionTime, setNewSessionTime] = useState("10:00");
+    const [addingSession, setAddingSession] = useState(false);
+
     useEffect(() => {
         if (session?.user?.role !== "ADMIN") {
             router.push("/dashboard");
@@ -77,6 +96,10 @@ export default function AdminEditClassPage({ params }: { params: Promise<{ id: s
                         : ""
                 );
                 setSelectedTeacherIds(cls.teachers.map((t: any) => t.id));
+                const sorted = [...(cls.sessions || [])].sort(
+                    (a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime()
+                );
+                setSessions(sorted.map((s: any) => ({ ...s, date: new Date(s.date) })));
             } else {
                 alert(data.error || "خطا در دریافت اطلاعات");
                 router.push(`/dashboard/admin/classes/${classId}`);
@@ -102,6 +125,75 @@ export default function AdminEditClassPage({ params }: { params: Promise<{ id: s
         setSelectedTeacherIds((prev) =>
             prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
         );
+    };
+
+    const updateSessionLocal = (id: string, changes: Partial<SessionData>) => {
+        setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, ...changes } : s)));
+    };
+
+    const handleSaveSession = async (s: SessionData) => {
+        setSavingSessionId(s.id);
+        try {
+            const res = await fetch(`/api/sessions/${s.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title: s.title, description: s.description, date: s.date.toISOString() }),
+            });
+            if (!res.ok) {
+                const data = await res.json();
+                alert(data.error || "خطا در ذخیره جلسه");
+            }
+        } catch {
+            alert("خطا در ذخیره جلسه");
+        } finally {
+            setSavingSessionId(null);
+        }
+    };
+
+    const handleDeleteSession = async (sessionId: string) => {
+        if (!confirm("آیا از حذف این جلسه اطمینان دارید؟")) return;
+        try {
+            const res = await fetch(`/api/sessions/${sessionId}`, { method: "DELETE" });
+            if (res.ok) {
+                setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+            } else {
+                const data = await res.json();
+                alert(data.error || "خطا در حذف جلسه");
+            }
+        } catch {
+            alert("خطا در حذف جلسه");
+        }
+    };
+
+    const handleAddSession = async () => {
+        if (!newSessionTitle.trim() || !newSessionDate) return;
+        setAddingSession(true);
+        try {
+            const d = new Date(newSessionDate);
+            const [h, m] = newSessionTime.split(":").map(Number);
+            d.setHours(h, m, 0, 0);
+            const res = await fetch("/api/sessions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ classId, title: newSessionTitle.trim(), date: d.toISOString() }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                const newS = { ...data.session, date: new Date(data.session.date) };
+                setSessions((prev) =>
+                    [...prev, newS].sort((a, b) => a.date.getTime() - b.date.getTime())
+                );
+                setNewSessionTitle("");
+                setNewSessionDate(null);
+                setNewSessionTime("10:00");
+            } else {
+                alert(data.error || "خطا در افزودن جلسه");
+            }
+        } catch {
+            alert("خطا در افزودن جلسه");
+        } finally {
+            setAddingSession(false);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -303,6 +395,118 @@ export default function AdminEditClassPage({ params }: { params: Promise<{ id: s
                                         <span className="truncate">{teacher.name}</span>
                                     </button>
                                 ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Sessions */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>جلسات کلاس</CardTitle>
+                            <CardDescription>
+                                عنوان، تاریخ و ساعت هر جلسه را ویرایش کنید یا جلسه جدید اضافه کنید
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {sessions.length === 0 && (
+                                <p className="text-sm text-[var(--muted-foreground)]">هیچ جلسه‌ای ثبت نشده</p>
+                            )}
+                            <div className="space-y-3 max-h-96 overflow-y-auto">
+                                {sessions.map((s, idx) => (
+                                    <div key={s.id} className="flex items-start gap-3 p-3 bg-white border border-[var(--border)] rounded-lg">
+                                        <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-bold shrink-0 mt-1">
+                                            {idx + 1}
+                                        </div>
+                                        <div className="flex-1 min-w-0 space-y-2">
+                                            <Input
+                                                value={s.title}
+                                                onChange={(e) => updateSessionLocal(s.id, { title: e.target.value })}
+                                                placeholder="عنوان جلسه"
+                                                className="h-8 text-sm"
+                                            />
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <PersianDatePicker
+                                                    value={s.date}
+                                                    onChange={(d) => {
+                                                        if (!d) return;
+                                                        const updated = new Date(d);
+                                                        updated.setHours(s.date.getHours(), s.date.getMinutes(), 0, 0);
+                                                        updateSessionLocal(s.id, { date: updated });
+                                                    }}
+                                                />
+                                                <Input
+                                                    type="time"
+                                                    value={moment(s.date).format("HH:mm")}
+                                                    onChange={(e) => {
+                                                        const [h, m] = e.target.value.split(":").map(Number);
+                                                        const updated = new Date(s.date);
+                                                        updated.setHours(h, m, 0, 0);
+                                                        updateSessionLocal(s.id, { date: updated });
+                                                    }}
+                                                    className="w-28 h-8 text-sm"
+                                                />
+                                                <span className="text-xs text-[var(--muted-foreground)]">
+                                                    {toJalali(s.date)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-1 shrink-0 mt-1">
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => handleSaveSession(s)}
+                                                disabled={savingSessionId === s.id}
+                                                className="h-8 text-xs"
+                                            >
+                                                {savingSessionId === s.id ? "..." : "ذخیره"}
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => handleDeleteSession(s.id)}
+                                                className="h-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                            >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Add new session */}
+                            <div className="border border-dashed border-[var(--border)] rounded-lg p-4 space-y-3 bg-[var(--muted)]">
+                                <p className="text-sm font-medium">افزودن جلسه جدید</p>
+                                <Input
+                                    value={newSessionTitle}
+                                    onChange={(e) => setNewSessionTitle(e.target.value)}
+                                    placeholder="عنوان جلسه"
+                                    className="h-8 text-sm"
+                                />
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <PersianDatePicker
+                                        value={newSessionDate || undefined}
+                                        onChange={(d) => setNewSessionDate(d)}
+                                        minDate={new Date()}
+                                    />
+                                    <Input
+                                        type="time"
+                                        value={newSessionTime}
+                                        onChange={(e) => setNewSessionTime(e.target.value)}
+                                        className="w-28 h-8 text-sm"
+                                    />
+                                </div>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    onClick={handleAddSession}
+                                    disabled={addingSession || !newSessionTitle.trim() || !newSessionDate}
+                                    className="gap-1"
+                                >
+                                    <Plus className="h-3.5 w-3.5" />
+                                    {addingSession ? "در حال افزودن..." : "افزودن جلسه"}
+                                </Button>
                             </div>
                         </CardContent>
                     </Card>
