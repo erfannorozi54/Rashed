@@ -109,7 +109,6 @@ export default function AdminCreateClassPage() {
     const [recurringStartDate, setRecurringStartDate] = useState<Date | null>(null);
     const [recurringDays, setRecurringDays] = useState<number[]>([]);
     const [recurringCount, setRecurringCount] = useState(12);
-    const [previewDates, setPreviewDates] = useState<Date[]>([]);
 
     useEffect(() => {
         if (session?.user?.role !== "ADMIN") {
@@ -191,7 +190,7 @@ export default function AdminCreateClassPage() {
         );
     };
 
-    const handleGeneratePreview = () => {
+    const handleGenerateRecurringSessions = () => {
         if (!recurringStartDate || recurringDays.length === 0) return;
 
         const dates: Date[] = [];
@@ -212,17 +211,12 @@ export default function AdminCreateClassPage() {
             iterations++;
         }
 
-        setPreviewDates(dates);
-    };
-
-    const handleAddRecurringToPlanned = () => {
-        const newSessions: PlannedSession[] = previewDates.map((d, i) => ({
+        const newSessions: PlannedSession[] = dates.map((d, i) => ({
             id: Math.random().toString(36).slice(2),
-            title: `جلسه ${plannedSessions.length + i + 1}`,
+            title: `جلسه ${i + 1}`,
             date: d,
         }));
-        setPlannedSessions((prev) => [...prev, ...newSessions]);
-        setPreviewDates([]);
+        setPlannedSessions(newSessions);
     };
 
     const handleCalendarPick = (date: Date) => {
@@ -303,8 +297,7 @@ export default function AdminCreateClassPage() {
 
     if (session?.user?.role !== "ADMIN") return null;
 
-    const calendarDates =
-        sessionTab === "recurring" ? previewDates : plannedSessions.map((s) => s.date);
+    const calendarDates = plannedSessions.map((s) => s.date);
 
     return (
         <div className="min-h-screen bg-[var(--muted)]">
@@ -576,34 +569,26 @@ export default function AdminCreateClassPage() {
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-3">
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={handleGeneratePreview}
-                                            disabled={!recurringStartDate || recurringDays.length === 0}
-                                        >
-                                            پیش‌نمایش
-                                        </Button>
-                                        {previewDates.length > 0 && (
-                                            <Button
-                                                type="button"
-                                                onClick={handleAddRecurringToPlanned}
-                                            >
-                                                <Plus className="h-4 w-4 ml-1" />
-                                                افزودن {previewDates.length} جلسه
-                                            </Button>
-                                        )}
-                                    </div>
+                                    <Button
+                                        type="button"
+                                        onClick={handleGenerateRecurringSessions}
+                                        disabled={!recurringStartDate || recurringDays.length === 0}
+                                    >
+                                        <Calendar className="h-4 w-4 ml-1" />
+                                        تولید {recurringCount} جلسه
+                                    </Button>
 
-                                    {previewDates.length > 0 && (
-                                        <div>
-                                            <p className="text-sm font-medium mb-2">پیش‌نمایش ({previewDates.length} جلسه)</p>
+                                    {plannedSessions.length > 0 && (
+                                        <div className="space-y-2">
+                                            <p className="text-xs text-[var(--muted-foreground)]">
+                                                برای حذف جلسات تعطیل روی روز مربوطه در تقویم یا دکمه حذف در لیست کلیک کنید
+                                            </p>
                                             <SessionPlannerCalendar
-                                                plannedDates={previewDates}
+                                                plannedDates={calendarDates}
                                                 busySlots={teacherBusySlots}
                                                 sessionDuration={Number(sessionDuration) || 90}
-                                                mode="view"
+                                                mode="pick"
+                                                onDayClick={handleCalendarPick}
                                             />
                                         </div>
                                     )}
