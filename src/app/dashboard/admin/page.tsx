@@ -5,7 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { GraduationCap, LogOut, Users, RefreshCw, Clock } from "lucide-react";
+import { GraduationCap, LogOut, Users, RefreshCw, Clock, BookMarked } from "lucide-react";
 import Link from "next/link";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 
@@ -207,6 +207,20 @@ export default function AdminDashboard() {
                                 </CardTitle>
                                 <CardDescription>
                                     مدیریت زمان آزاد معلمان و مدیران
+                                </CardDescription>
+                            </CardHeader>
+                        </Card>
+                    </Link>
+
+                    <Link href="/dashboard/admin/teacher-specializations">
+                        <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <BookMarked className="h-5 w-5 text-indigo-600" />
+                                    تخصص‌های اساتید
+                                </CardTitle>
+                                <CardDescription>
+                                    تعریف دروس و موضوعات تدریس خصوصی
                                 </CardDescription>
                             </CardHeader>
                         </Card>

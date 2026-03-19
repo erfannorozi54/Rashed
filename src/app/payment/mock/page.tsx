@@ -10,22 +10,35 @@ function MockPaymentContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const paymentId = searchParams.get("payment_id");
+    const bookingId = searchParams.get("booking_id");
+    const type = searchParams.get("type");
+    const isPrivate = type === "private";
 
     const [loading, setLoading] = useState(true);
     const [paymentInfo, setPaymentInfo] = useState<{
         amount: number;
-        className: string;
+        label: string;
+        sublabel?: string;
     } | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!paymentId) {
-            setError("شناسه پرداخت معتبر نیست");
-            setLoading(false);
-            return;
+        if (isPrivate) {
+            if (!bookingId) {
+                setError("شناسه رزرو معتبر نیست");
+                setLoading(false);
+                return;
+            }
+            fetchBooking();
+        } else {
+            if (!paymentId) {
+                setError("شناسه پرداخت معتبر نیست");
+                setLoading(false);
+                return;
+            }
+            fetchPayment();
         }
-        fetchPayment();
-    }, [paymentId]);
+    }, [paymentId, bookingId, isPrivate]);
 
     const fetchPayment = async () => {
         try {
@@ -34,13 +47,35 @@ function MockPaymentContent() {
             if (res.ok) {
                 setPaymentInfo({
                     amount: data.payment.amount,
-                    className: data.payment.class.name,
+                    label: data.payment.class.name,
                 });
             } else {
                 setError(data.error || "خطا در دریافت اطلاعات پرداخت");
             }
         } catch (e) {
             setError("خطا در دریافت اطلاعات پرداخت");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchBooking = async () => {
+        try {
+            const res = await fetch(`/api/private-bookings/${bookingId}`);
+            const data = await res.json();
+            if (res.ok) {
+                const b = data.booking;
+                const dateStr = new Date(b.date).toLocaleDateString("fa-IR");
+                setPaymentInfo({
+                    amount: b.amount,
+                    label: `جلسه خصوصی با ${b.teacher.name}`,
+                    sublabel: `${dateStr} — ${b.startTime} تا ${b.endTime}`,
+                });
+            } else {
+                setError(data.error || "خطا در دریافت اطلاعات رزرو");
+            }
+        } catch (e) {
+            setError("خطا در دریافت اطلاعات رزرو");
         } finally {
             setLoading(false);
         }
@@ -68,7 +103,11 @@ function MockPaymentContent() {
     }
 
     const handleAction = (status: "success" | "failed") => {
-        router.push(`/payment/callback?payment_id=${paymentId}&status=${status}`);
+        if (isPrivate) {
+            router.push(`/payment/callback?booking_id=${bookingId}&status=${status}&type=private`);
+        } else {
+            router.push(`/payment/callback?payment_id=${paymentId}&status=${status}`);
+        }
     };
 
     return (
@@ -90,8 +129,15 @@ function MockPaymentContent() {
                     {/* Payment Info */}
                     <div className="space-y-3">
                         <div className="flex justify-between items-center py-2 border-b border-[var(--border)]">
-                            <span className="text-sm text-[var(--muted-foreground)]">کلاس</span>
-                            <span className="font-medium">{paymentInfo.className}</span>
+                            <span className="text-sm text-[var(--muted-foreground)]">
+                                {isPrivate ? "جلسه" : "کلاس"}
+                            </span>
+                            <div className="text-right">
+                                <span className="font-medium">{paymentInfo.label}</span>
+                                {paymentInfo.sublabel && (
+                                    <p className="text-xs text-[var(--muted-foreground)] mt-0.5">{paymentInfo.sublabel}</p>
+                                )}
+                            </div>
                         </div>
                         <div className="flex justify-between items-center py-2">
                             <span className="text-sm text-[var(--muted-foreground)]">مبلغ پرداختی</span>

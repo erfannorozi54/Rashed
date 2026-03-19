@@ -11,29 +11,42 @@ function PaymentCallbackContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const paymentId = searchParams.get("payment_id");
+    const bookingId = searchParams.get("booking_id");
+    const type = searchParams.get("type");
     const status = searchParams.get("status") as "success" | "failed" | null;
+    const isPrivate = type === "private";
 
     const [processing, setProcessing] = useState(true);
     const [result, setResult] = useState<"success" | "failed" | null>(null);
 
     useEffect(() => {
-        if (!paymentId || !status) {
+        if ((!paymentId && !bookingId) || !status) {
             setProcessing(false);
             setResult("failed");
             return;
         }
         processCallback();
-    }, [paymentId, status]);
+    }, [paymentId, bookingId, status, isPrivate]);
 
     const processCallback = async () => {
         try {
-            const res = await fetch("/api/payments/callback", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ paymentId, status }),
-            });
-            const data = await res.json();
-            setResult(data.success ? "success" : "failed");
+            if (isPrivate) {
+                const res = await fetch("/api/private-bookings/callback", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ bookingId, status }),
+                });
+                const data = await res.json();
+                setResult(data.success ? "success" : "failed");
+            } else {
+                const res = await fetch("/api/payments/callback", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ paymentId, status }),
+                });
+                const data = await res.json();
+                setResult(data.success ? "success" : "failed");
+            }
         } catch (e) {
             setResult("failed");
         } finally {
@@ -60,12 +73,18 @@ function PaymentCallbackContent() {
                             <div>
                                 <h2 className="text-2xl font-bold text-green-700 mb-2">پرداخت موفق</h2>
                                 <p className="text-[var(--muted-foreground)]">
-                                    ثبت‌نام شما با موفقیت انجام شد
+                                    {isPrivate ? "رزرو جلسه خصوصی با موفقیت انجام شد" : "ثبت‌نام شما با موفقیت انجام شد"}
                                 </p>
                             </div>
-                            <Link href="/dashboard/student/classes">
-                                <Button className="w-full">مشاهده کلاس‌های من</Button>
-                            </Link>
+                            {isPrivate ? (
+                                <Link href="/dashboard/student/book-session">
+                                    <Button className="w-full">مشاهده رزروهای من</Button>
+                                </Link>
+                            ) : (
+                                <Link href="/dashboard/student/classes">
+                                    <Button className="w-full">مشاهده کلاس‌های من</Button>
+                                </Link>
+                            )}
                         </>
                     ) : (
                         <>
@@ -76,7 +95,17 @@ function PaymentCallbackContent() {
                                     متأسفانه پرداخت انجام نشد. می‌توانید دوباره تلاش کنید.
                                 </p>
                             </div>
-                            {paymentId && (
+                            {isPrivate && bookingId ? (
+                                <Button
+                                    variant="outline"
+                                    className="w-full"
+                                    onClick={() =>
+                                        router.push(`/payment/mock?booking_id=${bookingId}&type=private`)
+                                    }
+                                >
+                                    تلاش مجدد
+                                </Button>
+                            ) : paymentId ? (
                                 <Button
                                     variant="outline"
                                     className="w-full"
@@ -86,9 +115,11 @@ function PaymentCallbackContent() {
                                 >
                                     تلاش مجدد
                                 </Button>
-                            )}
-                            <Link href="/classes">
-                                <Button variant="ghost" className="w-full">بازگشت به کلاس‌ها</Button>
+                            ) : null}
+                            <Link href={isPrivate ? "/dashboard/student/book-session" : "/classes"}>
+                                <Button variant="ghost" className="w-full">
+                                    {isPrivate ? "بازگشت به رزرو جلسه" : "بازگشت به کلاس‌ها"}
+                                </Button>
                             </Link>
                         </>
                     )}

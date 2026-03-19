@@ -4,7 +4,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { BookOpen, Calendar, FileText, LogOut, GraduationCap, ChevronLeft, CreditCard } from "lucide-react";
+import { BookOpen, Calendar, FileText, LogOut, GraduationCap, ChevronLeft, CreditCard, UserCheck } from "lucide-react";
 import Link from "next/link";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 import { SessionTypeBadge } from "@/components/SessionTypeBadge";
@@ -179,6 +179,18 @@ export default function StudentDashboard() {
                             </CardHeader>
                             <CardContent>
                                 <p className="text-xs text-[var(--muted-foreground)]">مشاهده تقویم کامل جلسات</p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+
+                    <Link href="/dashboard/student/book-session">
+                        <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">رزرو جلسه خصوصی</CardTitle>
+                                <UserCheck className="h-4 w-4 text-[var(--muted-foreground)]" />
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-xs text-[var(--muted-foreground)]">رزرو جلسه ۹۰ دقیقه‌ای با استاد</p>
                             </CardContent>
                         </Card>
                     </Link>

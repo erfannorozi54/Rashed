@@ -133,7 +133,7 @@ export async function getTeacherWeeklySchedule(
     weekEnd.setDate(weekEnd.getDate() + 1);
 
     // Fetch all data in parallel
-    const [recurring, exceptions, classTeachers] = await Promise.all([
+    const [recurring, exceptions, classTeachers, privateBookings] = await Promise.all([
         prisma.teacherAvailability.findMany({ where: { teacherId } }),
         prisma.availabilityException.findMany({
             where: { teacherId, date: { gte: weekStart, lt: weekEnd } },
@@ -152,6 +152,10 @@ export async function getTeacherWeeklySchedule(
                 },
             },
         }),
+        (prisma as any).privateBooking.findMany({
+            where: { teacherId, date: { gte: weekStart, lt: weekEnd }, status: "CONFIRMED" },
+            select: { date: true, startTime: true, endTime: true },
+        }) as Promise<Array<{ date: Date; startTime: string; endTime: string }>>,
     ]);
 
     return weekDates.map((date, i) => {
@@ -200,6 +204,14 @@ export async function getTeacherWeeklySchedule(
                         end: `${String(endTime.getHours()).padStart(2, "0")}:${String(endTime.getMinutes()).padStart(2, "0")}`,
                     });
                 }
+            }
+        }
+
+        // Add confirmed private bookings as busy
+        for (const pb of privateBookings as Array<{ date: Date; startTime: string; endTime: string }>) {
+            const pbDate = new Date(pb.date);
+            if (pbDate >= dayStart && pbDate < dayEnd) {
+                busySlots.push({ start: pb.startTime, end: pb.endTime });
             }
         }
 
@@ -277,6 +289,17 @@ export async function getTeacherFreeSlots(
     }
 
     available = subtractSlots(available, busySlots);
+
+    // Also subtract confirmed private bookings
+    const confirmedBookings = await (prisma as any).privateBooking.findMany({
+        where: { teacherId, date: dateOnly, status: "CONFIRMED" },
+        select: { startTime: true, endTime: true },
+    }) as Array<{ startTime: string; endTime: string }>;
+    const bookingSlots: TimeSlot[] = confirmedBookings.map((b: { startTime: string; endTime: string }) => ({
+        start: b.startTime,
+        end: b.endTime,
+    }));
+    available = subtractSlots(available, bookingSlots);
 
     return available.filter((s) => timeToMin(s.end) - timeToMin(s.start) >= durationMinutes);
 }
