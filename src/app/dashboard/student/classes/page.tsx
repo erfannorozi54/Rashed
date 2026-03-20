@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BookOpen, Calendar, Users, FileText, Globe, CreditCard } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import DashboardHeader from "@/components/layout/DashboardHeader";
 
 interface Teacher {
   id: string;
@@ -73,7 +74,10 @@ export default function StudentClassesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-[var(--muted)]">
+      <DashboardHeader title="کلاس‌های من" />
+      <main className="container mx-auto px-4 py-8">
+      <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">کلاس‌های من</h2>
@@ -168,6 +172,8 @@ export default function StudentClassesPage() {
           ))}
         </div>
       )}
+    </div>
+      </main>
     </div>
   );
 }

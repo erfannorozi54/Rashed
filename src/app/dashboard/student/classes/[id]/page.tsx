@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { BookOpen, Calendar, Download, Users, FileText, Clock, CheckCircle, XCircle, CreditCard } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import DashboardHeader from "@/components/layout/DashboardHeader";
 
 interface Teacher {
   id: string;
@@ -115,6 +116,9 @@ export default function ClassDetailPage({ params }: { params: { id: string } }) 
   }
 
   return (
+    <div className="min-h-screen bg-[var(--muted)]">
+      <DashboardHeader title={classData.name} backHref="/dashboard/student/classes" />
+      <main className="container mx-auto px-4 py-8">
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -344,6 +348,8 @@ export default function ClassDetailPage({ params }: { params: { id: string } }) 
           )}
         </CardContent>
       </Card>
+    </div>
+      </main>
     </div>
   );
 }
