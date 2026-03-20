@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
-import { LogOut, BookOpen, ChevronRight, ChevronDown } from "lucide-react";
+import { LogOut, BookOpen, ChevronRight, ChevronDown, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Logo } from "@/components/ui/Logo";
@@ -13,7 +13,17 @@ interface DashboardHeaderProps {
     backHref?: string;
 }
 
-const MAIN_DASHBOARD_PATHS = ["/dashboard/admin", "/dashboard/teacher", "/dashboard/student"];
+const ROLE_DASHBOARD: Record<string, string> = {
+    ADMIN: "/dashboard/admin",
+    TEACHER: "/dashboard/teacher",
+    STUDENT: "/dashboard/student",
+};
+
+const ROLE_LABEL: Record<string, string> = {
+    ADMIN: "مدیر",
+    TEACHER: "معلم",
+    STUDENT: "دانش‌آموز",
+};
 
 export default function DashboardHeader({ title, backHref }: DashboardHeaderProps) {
     const { data: session } = useSession();
@@ -22,7 +32,9 @@ export default function DashboardHeader({ title, backHref }: DashboardHeaderProp
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const isMainPage = MAIN_DASHBOARD_PATHS.includes(pathname);
+    const role = session?.user?.role as string | undefined;
+    const dashboardHref = role ? ROLE_DASHBOARD[role] : "/dashboard";
+    const isOnDashboard = role ? pathname === ROLE_DASHBOARD[role] : false;
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
@@ -34,15 +46,6 @@ export default function DashboardHeader({ title, backHref }: DashboardHeaderProp
         return () => document.removeEventListener("mousedown", handler);
     }, []);
 
-    const getRoleLabel = (role?: string) => {
-        switch (role) {
-            case "ADMIN": return "مدیر";
-            case "TEACHER": return "معلم";
-            case "STUDENT": return "دانش‌آموز";
-            default: return "";
-        }
-    };
-
     const getInitials = (name?: string | null) => {
         if (!name) return "؟";
         const parts = name.trim().split(" ");
@@ -52,33 +55,38 @@ export default function DashboardHeader({ title, backHref }: DashboardHeaderProp
     return (
         <header className="bg-white border-b border-[var(--border)] sticky top-0 z-50">
             <div className="container mx-auto px-4 py-3">
-                <div className="flex items-center justify-between gap-4">
-                    {/* Logo */}
+                <div className="flex items-center gap-3">
+
+                    {/* ── Logo ───────────────────────── */}
                     <Link href="/" className="shrink-0">
                         <Logo width={120} height={67} className="h-8 w-auto" />
                     </Link>
 
-                    {/* Page title */}
+                    {/* ── Page title (desktop) ────────── */}
                     {title && (
-                        <span className="text-sm font-medium text-[var(--muted-foreground)] hidden md:block truncate">
+                        <span className="text-sm text-[var(--muted-foreground)] hidden md:block truncate flex-1">
                             {title}
                         </span>
                     )}
 
-                    {/* Actions */}
+                    {/* ── Spacer ──────────────────────── */}
+                    <div className="flex-1" />
+
+                    {/* ── Nav actions ─────────────────── */}
                     <div className="flex items-center gap-1 shrink-0">
-                        {/* Teacher blogs link */}
-                        {session?.user?.role === "TEACHER" && (
+
+                        {/* Teacher blogs */}
+                        {role === "TEACHER" && (
                             <Link href="/blogs">
-                                <Button variant="ghost" size="sm" className="hidden md:flex items-center gap-1">
+                                <Button variant="ghost" size="sm" className="hidden md:flex items-center gap-1.5">
                                     <BookOpen className="h-4 w-4" />
                                     بلاگ‌ها
                                 </Button>
                             </Link>
                         )}
 
-                        {/* Back button — only on sub-pages */}
-                        {!isMainPage && (
+                        {/* Back button */}
+                        {!isOnDashboard && (
                             <Button
                                 variant="ghost"
                                 size="sm"
@@ -88,6 +96,16 @@ export default function DashboardHeader({ title, backHref }: DashboardHeaderProp
                                 <ChevronRight className="h-4 w-4" />
                                 <span className="hidden sm:inline">بازگشت</span>
                             </Button>
+                        )}
+
+                        {/* Dashboard shortcut */}
+                        {!isOnDashboard && (
+                            <Link href={dashboardHref}>
+                                <Button variant="outline" size="sm" className="flex items-center gap-1.5">
+                                    <LayoutDashboard className="h-4 w-4" />
+                                    <span className="hidden sm:inline">داشبورد</span>
+                                </Button>
+                            </Link>
                         )}
 
                         {/* Profile dropdown */}
@@ -108,25 +126,47 @@ export default function DashboardHeader({ title, backHref }: DashboardHeaderProp
                             </button>
 
                             {dropdownOpen && (
-                                <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl border border-[var(--border)] shadow-lg py-1 z-50">
-                                    {/* User info header */}
+                                <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl border border-[var(--border)] shadow-lg py-1 z-50">
+                                    {/* User info */}
                                     <div className="px-4 py-3 border-b border-[var(--border)]">
-                                        <p className="font-semibold text-sm text-[var(--foreground)] truncate">
-                                            {session?.user?.name}
-                                        </p>
+                                        <p className="font-semibold text-sm truncate">{session?.user?.name}</p>
                                         <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-                                            {getRoleLabel(session?.user?.role)}
+                                            {role ? ROLE_LABEL[role] : ""}
                                         </p>
                                     </div>
 
-                                    {/* Logout */}
-                                    <button
-                                        onClick={() => signOut({ callbackUrl: "/" })}
-                                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                    {/* Dashboard link */}
+                                    <Link
+                                        href={dashboardHref}
+                                        onClick={() => setDropdownOpen(false)}
+                                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors"
                                     >
-                                        <LogOut className="h-4 w-4" />
-                                        خروج از حساب
-                                    </button>
+                                        <LayoutDashboard className="h-4 w-4 text-[var(--primary-600)]" />
+                                        داشبورد
+                                    </Link>
+
+                                    {/* Blogs (teacher only) */}
+                                    {role === "TEACHER" && (
+                                        <Link
+                                            href="/blogs"
+                                            onClick={() => setDropdownOpen(false)}
+                                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors"
+                                        >
+                                            <BookOpen className="h-4 w-4 text-[var(--secondary-600)]" />
+                                            بلاگ‌ها
+                                        </Link>
+                                    )}
+
+                                    {/* Logout */}
+                                    <div className="border-t border-[var(--border)] mt-1 pt-1">
+                                        <button
+                                            onClick={() => signOut({ callbackUrl: "/" })}
+                                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                        >
+                                            <LogOut className="h-4 w-4" />
+                                            خروج از حساب
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                         </div>
