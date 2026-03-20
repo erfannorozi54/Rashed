@@ -50,10 +50,8 @@ export default function StudentTeachersPage() {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent>
-                                        <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                                            t.role === "ADMIN" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
-                                        }`}>
-                                            {t.role === "ADMIN" ? "مدیر" : "استاد"}
+                                        <span className="inline-block px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                                            استاد
                                         </span>
                                     </CardContent>
                                 </Card>
