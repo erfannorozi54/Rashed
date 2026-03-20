@@ -11,6 +11,7 @@ export default function StudentSchedulePage() {
     const { data: session } = useSession();
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [ready, setReady] = useState(false);
     const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
 
     useEffect(() => {
@@ -46,6 +47,7 @@ export default function StudentSchedulePage() {
             console.error("Error fetching sessions:", error);
         } finally {
             setLoading(false);
+            setReady(true);
         }
     };
 
@@ -67,7 +69,7 @@ export default function StudentSchedulePage() {
                     </p>
                 </div>
 
-                {loading && sessions.length === 0 ? (
+                {!ready ? (
                     <div className="flex justify-center py-20">
                         <Loader2 className="w-10 h-10 animate-spin text-[var(--primary-600)]" />
                     </div>
