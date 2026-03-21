@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { GraduationCap, Users, Calendar, ArrowLeft, BookOpen } from "lucide-react";
+import { GraduationCap, Users, Calendar, BookOpen } from "lucide-react";
+import DashboardHeader from "@/components/layout/DashboardHeader";
 
 interface PublicClass {
     id: string;
@@ -92,31 +93,7 @@ export default function PublicClassesPage() {
 
     return (
         <div className="min-h-screen bg-[var(--muted)]">
-            {/* Header */}
-            <header className="bg-white border-b border-[var(--border)] sticky top-0 z-10">
-                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-gradient-to-br from-[var(--primary-500)] to-[var(--primary-700)] p-2 rounded-xl">
-                            <GraduationCap className="h-5 w-5 text-white" />
-                        </div>
-                        <span className="font-bold text-lg text-[var(--foreground)]">آموزشگاه راشد</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Link href="/">
-                            <Button variant="ghost" size="sm">صفحه اصلی</Button>
-                        </Link>
-                        {status === "authenticated" ? (
-                            <Link href="/dashboard">
-                                <Button size="sm">داشبورد</Button>
-                            </Link>
-                        ) : (
-                            <Link href="/auth/login">
-                                <Button size="sm">ورود</Button>
-                            </Link>
-                        )}
-                    </div>
-                </div>
-            </header>
+            <DashboardHeader title="کلاس‌های عمومی" />
 
             {/* Toast */}
             {toast && (

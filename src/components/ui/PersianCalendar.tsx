@@ -14,8 +14,10 @@ interface Session {
     id: string;
     title: string;
     date: string; // ISO string
-    type: "SCHEDULED" | "COMPENSATORY";
+    type: "SCHEDULED" | "COMPENSATORY" | "PRIVATE";
     description?: string;
+    startTime?: string;
+    endTime?: string;
 }
 
 interface PersianCalendarProps {
@@ -179,7 +181,8 @@ export default function PersianCalendar({
                                                 className={cn(
                                                     "w-1.5 h-1.5 rounded-full",
                                                     item.isSelected ? "bg-white" : (
-                                                        s.type === "COMPENSATORY" ? "bg-orange-500" : "bg-blue-500"
+                                                        s.type === "COMPENSATORY" ? "bg-orange-500" :
+                                                        s.type === "PRIVATE" ? "bg-purple-500" : "bg-blue-500"
                                                     )
                                                 )}
                                             />
@@ -215,6 +218,8 @@ export default function PersianCalendar({
                                         "p-4 rounded-2xl border transition-all hover:shadow-md",
                                         session.type === "COMPENSATORY"
                                             ? "bg-orange-50 border-orange-100"
+                                            : session.type === "PRIVATE"
+                                            ? "bg-purple-50 border-purple-100"
                                             : "bg-blue-50 border-blue-100"
                                     )}
                                 >
@@ -223,12 +228,15 @@ export default function PersianCalendar({
                                             "text-xs font-bold px-2 py-1 rounded-full",
                                             session.type === "COMPENSATORY"
                                                 ? "bg-orange-200 text-orange-700"
+                                                : session.type === "PRIVATE"
+                                                ? "bg-purple-200 text-purple-700"
                                                 : "bg-blue-200 text-blue-700"
                                         )}>
-                                            {session.type === "COMPENSATORY" ? "جبرانی" : "عادی"}
+                                            {session.type === "COMPENSATORY" ? "جبرانی" : session.type === "PRIVATE" ? "خصوصی" : "عادی"}
                                         </span>
                                         <span className="text-xs text-[var(--muted-foreground)] font-mono">
-                                            {moment(session.date).format("HH:mm")}
+                                            {session.startTime ?? moment(session.date).format("HH:mm")}
+                                            {session.endTime ? ` - ${session.endTime}` : ""}
                                         </span>
                                     </div>
                                     <h4 className="font-bold text-[var(--foreground)] mb-1">

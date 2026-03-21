@@ -37,12 +37,37 @@ export default function StudentSchedulePage() {
                 endDate: endDate.toISOString(),
             });
 
-            const res = await fetch(`/api/sessions?${query.toString()}`);
-            const data = await res.json();
+            const [sessionsRes, bookingsRes] = await Promise.all([
+                fetch(`/api/sessions?${query.toString()}`),
+                fetch("/api/private-bookings"),
+            ]);
 
-            if (res.ok) {
-                setSessions(data.sessions || []);
-            }
+            const sessionsData = sessionsRes.ok ? await sessionsRes.json() : { sessions: [] };
+            const bookingsData = bookingsRes.ok ? await bookingsRes.json() : { bookings: [] };
+
+            const regularSessions = sessionsData.sessions || [];
+
+            // Map confirmed/pending private bookings into calendar session format
+            const privateBookings = (bookingsData.bookings || [])
+                .filter((b: any) => b.status !== "CANCELLED")
+                .filter((b: any) => {
+                    const bookingDate = new Date(b.date);
+                    return bookingDate >= startDate && bookingDate <= endDate;
+                })
+                .map((b: any) => ({
+                    id: b.id,
+                    title: `کلاس خصوصی — ${b.teacher.name}`,
+                    // Combine date (YYYY-MM-DD) + startTime for correct positioning
+                    date: `${b.date.substring(0, 10)}T${b.startTime}:00`,
+                    type: "PRIVATE" as const,
+                    description: b.specialization
+                        ? `${b.specialization.subject} — پایه ${b.specialization.grade}`
+                        : undefined,
+                    startTime: b.startTime,
+                    endTime: b.endTime,
+                }));
+
+            setSessions([...regularSessions, ...privateBookings] as any);
         } catch (error) {
             console.error("Error fetching sessions:", error);
         } finally {
@@ -65,7 +90,7 @@ export default function StudentSchedulePage() {
                         تقویم آموزشی
                     </h1>
                     <p className="text-[var(--muted-foreground)]">
-                        مشاهده برنامه کلاس‌ها و جلسات جبرانی
+                        مشاهده برنامه کلاس‌ها، جلسات جبرانی و کلاس‌های خصوصی
                     </p>
                 </div>
 
