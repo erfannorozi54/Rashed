@@ -4,7 +4,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { BookOpen, Calendar, FileText, LogOut, GraduationCap, ChevronLeft, CreditCard, UserCheck } from "lucide-react";
+import { BookOpen, Calendar, FileText, LogOut, GraduationCap, ChevronLeft, CreditCard, UserCheck, User } from "lucide-react";
 import Link from "next/link";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 import { SessionTypeBadge } from "@/components/SessionTypeBadge";
@@ -17,7 +17,7 @@ export default function StudentDashboard() {
         pendingAssignments: 0,
         weeklySessions: 0,
     });
-    const [upcomingSessions, setUpcomingSessions] = useState<any[]>([]);
+    const [upcomingItems, setUpcomingItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [outstandingDebt, setOutstandingDebt] = useState(0);
 
@@ -29,32 +29,58 @@ export default function StudentDashboard() {
 
     const fetchDashboardData = async () => {
         try {
-            // Fetch upcoming sessions
-            const sessionsRes = await fetch("/api/sessions?type=upcoming");
-            const sessionsData = await sessionsRes.json();
+            // Fetch upcoming sessions and private bookings in parallel
+            const [sessionsRes, classesRes, assignmentsRes, bookingsRes] = await Promise.all([
+                fetch("/api/sessions?type=upcoming"),
+                fetch("/api/classes"),
+                fetch("/api/assignments?status=pending"),
+                fetch("/api/private-bookings"),
+            ]);
 
-            if (sessionsRes.ok) {
-                setUpcomingSessions(sessionsData.sessions || []);
-            }
+            const sessionsData = sessionsRes.ok ? await sessionsRes.json() : { sessions: [] };
+            const classesData = classesRes.ok ? await classesRes.json() : { classes: [] };
+            const assignmentsData = assignmentsRes.ok ? await assignmentsRes.json() : { assignments: [] };
+            const bookingsData = bookingsRes.ok ? await bookingsRes.json() : { bookings: [] };
 
-            // Fetch classes for stats
-            const classesRes = await fetch("/api/classes");
-            const classesData = await classesRes.json();
+            const now = new Date();
+            const oneWeekFromNow = new Date();
+            oneWeekFromNow.setDate(now.getDate() + 7);
 
-            // Fetch pending assignments
-            const assignmentsRes = await fetch("/api/assignments?status=pending");
-            const assignmentsData = await assignmentsRes.json();
+            const regularSessions = (sessionsData.sessions || []).map((s: any) => ({
+                ...s,
+                kind: "session",
+                sortDate: new Date(s.date),
+            }));
+
+            const privateItems = (bookingsData.bookings || [])
+                .filter((b: any) => b.status !== "CANCELLED" && new Date(b.date) >= now)
+                .map((b: any) => ({
+                    id: b.id,
+                    kind: "private",
+                    date: `${b.date.substring(0, 10)}T${b.startTime}:00`,
+                    sortDate: new Date(`${b.date.substring(0, 10)}T${b.startTime}:00`),
+                    startTime: b.startTime,
+                    endTime: b.endTime,
+                    teacher: b.teacher,
+                    specialization: b.specialization,
+                    status: b.status,
+                    amount: b.amount,
+                }));
+
+            const merged = [...regularSessions, ...privateItems].sort(
+                (a, b) => a.sortDate.getTime() - b.sortDate.getTime()
+            );
+
+            setUpcomingItems(merged);
+
+            const weeklyCount = merged.filter((item) => {
+                return item.sortDate >= now && item.sortDate <= oneWeekFromNow;
+            }).length;
 
             setStats({
                 activeClasses: classesData.classes?.length || 0,
                 pendingAssignments: assignmentsData.assignments?.length || 0,
-                weeklySessions: sessionsData.sessions?.filter((s: any) => {
-                    const sessionDate = new Date(s.date);
-                    const now = new Date();
-                    const oneWeekFromNow = new Date();
-                    oneWeekFromNow.setDate(now.getDate() + 7);
-                    return sessionDate >= now && sessionDate <= oneWeekFromNow;
-                }).length || 0,
+                weeklySessions: weeklyCount,
             });
 
             // Fetch outstanding debt
@@ -210,7 +236,7 @@ export default function StudentDashboard() {
                                 <div className="text-center py-8">
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary-600)] mx-auto"></div>
                                 </div>
-                            ) : upcomingSessions.length === 0 ? (
+                            ) : upcomingItems.length === 0 ? (
                                 <div className="text-center py-8 text-[var(--muted-foreground)]">
                                     <div className="flex items-center justify-between mb-4">
                                         <h2 className="text-xl font-bold text-[var(--foreground)] flex items-center gap-2">
@@ -229,41 +255,90 @@ export default function StudentDashboard() {
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    {upcomingSessions.map((session: any) => (
-                                        <div
-                                            key={session.id}
-                                            className="flex items-center justify-between p-4 bg-white border border-[var(--border)] rounded-lg hover:shadow-md transition-shadow"
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <div className="h-12 w-12 rounded-full bg-blue-50 text-blue-600 flex flex-col items-center justify-center border border-blue-100">
-                                                    <span className="text-xs font-bold">{new Date(session.date).toLocaleDateString('fa-IR', { month: 'short' })}</span>
-                                                    <span className="text-lg font-bold">{new Date(session.date).toLocaleDateString('fa-IR', { day: 'numeric' })}</span>
-                                                </div>
-                                                <div>
-                                                    <div className="flex items-center gap-2">
-                                                        <h4 className="font-bold text-[var(--foreground)]">
-                                                            {session.title}
-                                                        </h4>
-                                                        <SessionTypeBadge type={session.type} />
+                                    {upcomingItems.map((item: any) => {
+                                        if (item.kind === "private") {
+                                            return (
+                                                <div
+                                                    key={item.id}
+                                                    className="flex items-center justify-between p-4 bg-white border border-purple-100 rounded-lg hover:shadow-md transition-shadow"
+                                                >
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="h-12 w-12 rounded-full bg-purple-50 text-purple-600 flex flex-col items-center justify-center border border-purple-100 shrink-0">
+                                                            <span className="text-xs font-bold">{new Date(item.date).toLocaleDateString('fa-IR', { month: 'short' })}</span>
+                                                            <span className="text-lg font-bold">{new Date(item.date).toLocaleDateString('fa-IR', { day: 'numeric' })}</span>
+                                                        </div>
+                                                        <div>
+                                                            <div className="flex items-center gap-2 flex-wrap">
+                                                                <h4 className="font-bold text-[var(--foreground)]">کلاس خصوصی</h4>
+                                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                                                                    خصوصی
+                                                                </span>
+                                                                {item.status === "PENDING_PAYMENT" && (
+                                                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                                                                        در انتظار پرداخت
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                                                                <User className="h-3 w-3" />
+                                                                <span>{item.teacher.name}</span>
+                                                                {item.specialization && (
+                                                                    <>
+                                                                        <span className="mx-1">•</span>
+                                                                        <span>{item.specialization.subject} — پایه {item.specialization.grade}</span>
+                                                                    </>
+                                                                )}
+                                                                <span className="mx-1">•</span>
+                                                                <Calendar className="h-3 w-3" />
+                                                                <span>{item.startTime} تا {item.endTime}</span>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                                                        <BookOpen className="h-3 w-3" />
-                                                        <span>{session.class.name}</span>
-                                                        <span className="mx-1">•</span>
-                                                        <Calendar className="h-3 w-3" />
-                                                        <span>
-                                                            {new Date(session.date).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })}
-                                                        </span>
+                                                    <Link href="/dashboard/student/classes">
+                                                        <Button variant="outline" size="sm">
+                                                            جزئیات
+                                                        </Button>
+                                                    </Link>
+                                                </div>
+                                            );
+                                        }
+
+                                        return (
+                                            <div
+                                                key={item.id}
+                                                className="flex items-center justify-between p-4 bg-white border border-[var(--border)] rounded-lg hover:shadow-md transition-shadow"
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <div className="h-12 w-12 rounded-full bg-blue-50 text-blue-600 flex flex-col items-center justify-center border border-blue-100 shrink-0">
+                                                        <span className="text-xs font-bold">{new Date(item.date).toLocaleDateString('fa-IR', { month: 'short' })}</span>
+                                                        <span className="text-lg font-bold">{new Date(item.date).toLocaleDateString('fa-IR', { day: 'numeric' })}</span>
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <h4 className="font-bold text-[var(--foreground)]">
+                                                                {item.title}
+                                                            </h4>
+                                                            <SessionTypeBadge type={item.type} />
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                                                            <BookOpen className="h-3 w-3" />
+                                                            <span>{item.class.name}</span>
+                                                            <span className="mx-1">•</span>
+                                                            <Calendar className="h-3 w-3" />
+                                                            <span>
+                                                                {new Date(item.date).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
+                                                <Link href={`/dashboard/student/classes/${item.class.id}`}>
+                                                    <Button variant="outline" size="sm">
+                                                        مشاهده کلاس
+                                                    </Button>
+                                                </Link>
                                             </div>
-                                            <Link href={`/dashboard/student/classes/${session.class.id}`}>
-                                                <Button variant="outline" size="sm">
-                                                    مشاهده کلاس
-                                                </Button>
-                                            </Link>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </CardContent>
