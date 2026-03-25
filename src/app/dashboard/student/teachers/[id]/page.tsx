@@ -297,18 +297,6 @@ export default function StudentTeacherDetailPage({ params }: { params: Promise<{
 
                                 {selectedSpec === null ? (
                                     <div className="grid gap-2 sm:grid-cols-2">
-                                        {/* "No preference" option */}
-                                        <button
-                                            onClick={() => setSelectedSpec("")}
-                                            className="flex items-start gap-3 p-3 rounded-xl border-2 border-[var(--border)] bg-white hover:border-[var(--primary-400)] transition-colors text-right focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)]"
-                                        >
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium">بدون موضوع خاص</p>
-                                                <p className="text-xs text-[var(--muted-foreground)] mt-0.5">رایگان</p>
-                                            </div>
-                                            <ChevronLeft className="h-4 w-4 text-[var(--muted-foreground)] mt-0.5 shrink-0" />
-                                        </button>
-
                                         {teacher.specializations.map((s) => (
                                             <button
                                                 key={s.id}
