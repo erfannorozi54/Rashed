@@ -24,6 +24,7 @@ export default function AdminDashboard() {
     const { data: session } = useSession();
     const router = useRouter();
     const [users, setUsers] = useState<User[]>([]);
+    const [classCount, setClassCount] = useState<number>(0);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -32,6 +33,7 @@ export default function AdminDashboard() {
             return;
         }
         fetchUsers();
+        fetchClassCount();
     }, [session, router]);
 
     const fetchUsers = async () => {
@@ -45,6 +47,22 @@ export default function AdminDashboard() {
             console.error("Error fetching users:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchClassCount = async () => {
+        try {
+            // Use teacher-specific API for teachers, general API for admins
+            const endpoint = session?.user?.role === "TEACHER" 
+                ? "/api/teacher/classes" 
+                : "/api/classes";
+            const response = await fetch(endpoint);
+            const data = await response.json();
+            if (response.ok) {
+                setClassCount(data.classes?.length || 0);
+            }
+        } catch (error) {
+            console.error("Error fetching classes:", error);
         }
     };
 
@@ -174,7 +192,7 @@ export default function AdminDashboard() {
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-bold text-green-600">
-                                    -
+                                    {classCount}
                                 </div>
                                 <p className="text-sm text-[var(--muted-foreground)]">
                                     کلاس فعال
