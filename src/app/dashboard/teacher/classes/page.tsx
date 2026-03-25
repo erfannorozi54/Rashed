@@ -5,9 +5,12 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { BookOpen, Calendar, Users, PlusCircle, FileText } from "lucide-react";
+import { BookOpen, Calendar, Users, PlusCircle, FileText, Globe, Key, Lock, User } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 import { toJalali, getPersianDayName } from "@/lib/jalali-utils";
+
+type ClassType = "PUBLIC" | "SEMI_PRIVATE" | "PRIVATE";
 
 interface Teacher {
     id: string;
@@ -24,10 +27,39 @@ interface Class {
     id: string;
     name: string;
     description: string | null;
+    classType: ClassType;
     teachers: Teacher[];
     studentCount: number;
+    sessionDuration: number;
+    sessionPrice: number;
     latestSession: Session | null;
     createdAt: string;
+}
+
+const CLASS_TYPE_CONFIG: Record<ClassType, { label: string; icon: React.ReactNode; className: string }> = {
+    PUBLIC: {
+        label: "عمومی",
+        icon: <Globe className="h-3 w-3" />,
+        className: "bg-green-100 text-green-700 border-green-200",
+    },
+    SEMI_PRIVATE: {
+        label: "نیمه خصوصی",
+        icon: <Key className="h-3 w-3" />,
+        className: "bg-yellow-100 text-yellow-700 border-yellow-200",
+    },
+    PRIVATE: {
+        label: "خصوصی",
+        icon: <Lock className="h-3 w-3" />,
+        className: "bg-purple-100 text-purple-700 border-purple-200",
+    },
+};
+
+function getSessionTimes(dateStr: string, durationMin: number) {
+    const start = new Date(dateStr);
+    const end = new Date(start.getTime() + durationMin * 60_000);
+    const fmt = (d: Date) =>
+        `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    return { startTime: fmt(start), endTime: fmt(end) };
 }
 
 export default function TeacherClassesPage() {
@@ -46,7 +78,7 @@ export default function TeacherClassesPage() {
 
     const fetchClasses = async () => {
         try {
-            const response = await fetch("/api/classes");
+            const response = await fetch("/api/teacher/classes");
             const data = await response.json();
             if (response.ok) {
                 setClasses(data.classes || []);
@@ -62,6 +94,9 @@ export default function TeacherClassesPage() {
         return null;
     }
 
+    const groupClasses = classes.filter((c) => c.classType !== "PRIVATE");
+    const privateClasses = classes.filter((c) => c.classType === "PRIVATE");
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -70,7 +105,7 @@ export default function TeacherClassesPage() {
                         کلاس‌های من
                     </h2>
                     <p className="text-[var(--muted-foreground)]">
-                        لیست کلاس‌هایی که تدریس می‌کنید
+                        تمام کلاس‌هایی که تدریس می‌کنید
                     </p>
                 </div>
                 <Link href="/dashboard/teacher/classes/create">
@@ -95,45 +130,113 @@ export default function TeacherClassesPage() {
                     </CardContent>
                 </Card>
             ) : (
-                <div className="grid gap-6 md:grid-cols-2">
-                    {classes.map((cls) => (
-                        <Card key={cls.id} className="hover:shadow-lg transition-shadow">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <BookOpen className="h-5 w-5 text-[var(--primary-600)]" />
-                                    {cls.name}
-                                </CardTitle>
-                                {cls.description && (
-                                    <CardDescription>{cls.description}</CardDescription>
-                                )}
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                                    <Users className="h-4 w-4" />
-                                    <span>{cls.studentCount} دانش‌آموز</span>
-                                </div>
+                <div className="space-y-8">
+                    {/* Group / semi-private classes */}
+                    {groupClasses.length > 0 && (
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-[var(--foreground)]">کلاس‌های گروهی</h3>
+                            <div className="grid gap-6 md:grid-cols-2">
+                                {groupClasses.map((cls) => {
+                                    const typeConfig = CLASS_TYPE_CONFIG[cls.classType];
+                                    return (
+                                        <Card key={cls.id} className="hover:shadow-lg transition-shadow">
+                                            <CardHeader>
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <CardTitle className="flex items-center gap-2">
+                                                        <BookOpen className="h-5 w-5 text-[var(--primary-600)]" />
+                                                        {cls.name}
+                                                    </CardTitle>
+                                                    <span className={cn("flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border shrink-0", typeConfig.className)}>
+                                                        {typeConfig.icon}
+                                                        {typeConfig.label}
+                                                    </span>
+                                                </div>
+                                                {cls.description && (
+                                                    <CardDescription>{cls.description}</CardDescription>
+                                                )}
+                                            </CardHeader>
+                                            <CardContent className="space-y-4">
+                                                <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                                                    <Users className="h-4 w-4" />
+                                                    <span>{cls.studentCount} دانش‌آموز</span>
+                                                </div>
+                                                {cls.latestSession && (
+                                                    <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                                                        <Calendar className="h-4 w-4" />
+                                                        <span>
+                                                            آخرین جلسه:{" "}
+                                                            {toJalali(cls.latestSession.date)} ({getPersianDayName(cls.latestSession.date)})
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                <Link href={`/dashboard/teacher/classes/${cls.id}`} className="block">
+                                                    <Button className="w-full">
+                                                        <FileText className="h-4 w-4 ml-2" />
+                                                        مدیریت کلاس
+                                                    </Button>
+                                                </Link>
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
 
-                                {cls.latestSession && (
-                                    <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                                        <Calendar className="h-4 w-4" />
-                                        <span>
-                                            آخرین جلسه:{" "}
-                                            {toJalali(cls.latestSession.date)} ({getPersianDayName(cls.latestSession.date)})
-                                        </span>
-                                    </div>
-                                )}
-
-                                <div className="flex gap-2">
-                                    <Link href={`/dashboard/teacher/classes/${cls.id}`} className="flex-1">
-                                        <Button className="w-full">
-                                            <FileText className="h-4 w-4 ml-2" />
-                                            مدیریت کلاس
-                                        </Button>
-                                    </Link>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                    {/* Private booking sessions */}
+                    {privateClasses.length > 0 && (
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-[var(--foreground)]">جلسات خصوصی</h3>
+                            <div className="grid gap-6 md:grid-cols-2">
+                                {privateClasses.map((cls) => {
+                                    const times = cls.latestSession
+                                        ? getSessionTimes(cls.latestSession.date, cls.sessionDuration ?? 90)
+                                        : null;
+                                    const sessionDate = cls.latestSession ? new Date(cls.latestSession.date) : null;
+                                    return (
+                                        <Card key={cls.id} className="hover:shadow-lg transition-shadow border-purple-100">
+                                            <CardHeader>
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <CardTitle className="flex items-center gap-2">
+                                                        <User className="h-5 w-5 text-purple-600" />
+                                                        جلسه خصوصی
+                                                    </CardTitle>
+                                                    <span className={cn("flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border shrink-0", CLASS_TYPE_CONFIG.PRIVATE.className)}>
+                                                        {CLASS_TYPE_CONFIG.PRIVATE.icon}
+                                                        {CLASS_TYPE_CONFIG.PRIVATE.label}
+                                                    </span>
+                                                </div>
+                                                {cls.description && (
+                                                    <CardDescription>{cls.description}</CardDescription>
+                                                )}
+                                            </CardHeader>
+                                            <CardContent className="space-y-3">
+                                                <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                                                    <Users className="h-4 w-4" />
+                                                    <span>{cls.studentCount} دانش‌آموز</span>
+                                                </div>
+                                                {sessionDate && times && (
+                                                    <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                                                        <Calendar className="h-4 w-4" />
+                                                        <span>
+                                                            {sessionDate.toLocaleDateString("fa-IR")}
+                                                            {" — "}
+                                                            {times.startTime} تا {times.endTime}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {cls.sessionPrice > 0 && (
+                                                    <p className="text-sm text-[var(--muted-foreground)]">
+                                                        {cls.sessionPrice.toLocaleString("fa-IR")} تومان
+                                                    </p>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
