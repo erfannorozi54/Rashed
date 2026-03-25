@@ -29,47 +29,28 @@ export default function StudentDashboard() {
 
     const fetchDashboardData = async () => {
         try {
-            // Fetch upcoming sessions and private bookings in parallel
-            const [sessionsRes, classesRes, assignmentsRes, bookingsRes] = await Promise.all([
+            // Fetch upcoming sessions and classes in parallel
+            const [sessionsRes, classesRes, assignmentsRes] = await Promise.all([
                 fetch("/api/sessions?type=upcoming"),
                 fetch("/api/classes"),
                 fetch("/api/assignments?status=pending"),
-                fetch("/api/private-bookings"),
             ]);
 
             const sessionsData = sessionsRes.ok ? await sessionsRes.json() : { sessions: [] };
             const classesData = classesRes.ok ? await classesRes.json() : { classes: [] };
             const assignmentsData = assignmentsRes.ok ? await assignmentsRes.json() : { assignments: [] };
-            const bookingsData = bookingsRes.ok ? await bookingsRes.json() : { bookings: [] };
 
             const now = new Date();
             const oneWeekFromNow = new Date();
             oneWeekFromNow.setDate(now.getDate() + 7);
 
-            const regularSessions = (sessionsData.sessions || []).map((s: any) => ({
-                ...s,
-                kind: "session",
-                sortDate: new Date(s.date),
-            }));
-
-            const privateItems = (bookingsData.bookings || [])
-                .filter((b: any) => b.status !== "CANCELLED" && new Date(b.date) >= now)
-                .map((b: any) => ({
-                    id: b.id,
-                    kind: "private",
-                    date: `${b.date.substring(0, 10)}T${b.startTime}:00`,
-                    sortDate: new Date(`${b.date.substring(0, 10)}T${b.startTime}:00`),
-                    startTime: b.startTime,
-                    endTime: b.endTime,
-                    teacher: b.teacher,
-                    specialization: b.specialization,
-                    status: b.status,
-                    amount: b.amount,
-                }));
-
-            const merged = [...regularSessions, ...privateItems].sort(
-                (a, b) => a.sortDate.getTime() - b.sortDate.getTime()
-            );
+            const merged = (sessionsData.sessions || [])
+                .map((s: any) => ({
+                    ...s,
+                    kind: s.class?.classType === "PRIVATE" ? "private" : "session",
+                    sortDate: new Date(s.date),
+                }))
+                .sort((a: any, b: any) => a.sortDate.getTime() - b.sortDate.getTime());
 
             setUpcomingItems(merged);
 
@@ -257,6 +238,9 @@ export default function StudentDashboard() {
                                 <div className="space-y-4">
                                     {upcomingItems.map((item: any) => {
                                         if (item.kind === "private") {
+                                            const startTime = `${String(new Date(item.date).getHours()).padStart(2, "0")}:${String(new Date(item.date).getMinutes()).padStart(2, "0")}`;
+                                            const endDate = new Date(new Date(item.date).getTime() + (item.class?.sessionDuration ?? 90) * 60_000);
+                                            const endTime = `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}`;
                                             return (
                                                 <div
                                                     key={item.id}
@@ -269,28 +253,16 @@ export default function StudentDashboard() {
                                                         </div>
                                                         <div>
                                                             <div className="flex items-center gap-2 flex-wrap">
-                                                                <h4 className="font-bold text-[var(--foreground)]">کلاس خصوصی</h4>
+                                                                <h4 className="font-bold text-[var(--foreground)]">{item.class?.name ?? "کلاس خصوصی"}</h4>
                                                                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
                                                                     خصوصی
                                                                 </span>
-                                                                {item.status === "PENDING_PAYMENT" && (
-                                                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                                                                        در انتظار پرداخت
-                                                                    </span>
-                                                                )}
                                                             </div>
                                                             <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                                                                <User className="h-3 w-3" />
-                                                                <span>{item.teacher.name}</span>
-                                                                {item.specialization && (
-                                                                    <>
-                                                                        <span className="mx-1">•</span>
-                                                                        <span>{item.specialization.subject} — پایه {item.specialization.grade}</span>
-                                                                    </>
-                                                                )}
+                                                                {item.title && <span>{item.title}</span>}
                                                                 <span className="mx-1">•</span>
                                                                 <Calendar className="h-3 w-3" />
-                                                                <span>{item.startTime} تا {item.endTime}</span>
+                                                                <span>{startTime} تا {endTime}</span>
                                                             </div>
                                                         </div>
                                                     </div>

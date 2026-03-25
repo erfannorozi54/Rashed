@@ -37,37 +37,16 @@ export default function StudentSchedulePage() {
                 endDate: endDate.toISOString(),
             });
 
-            const [sessionsRes, bookingsRes] = await Promise.all([
-                fetch(`/api/sessions?${query.toString()}`),
-                fetch("/api/private-bookings"),
-            ]);
-
+            const sessionsRes = await fetch(`/api/sessions?${query.toString()}`);
             const sessionsData = sessionsRes.ok ? await sessionsRes.json() : { sessions: [] };
-            const bookingsData = bookingsRes.ok ? await bookingsRes.json() : { bookings: [] };
 
-            const regularSessions = sessionsData.sessions || [];
+            // Mark PRIVATE class sessions with type "PRIVATE" for calendar styling
+            const allSessions = (sessionsData.sessions || []).map((s: any) => ({
+                ...s,
+                type: s.class?.classType === "PRIVATE" ? "PRIVATE" : s.type,
+            }));
 
-            // Map confirmed/pending private bookings into calendar session format
-            const privateBookings = (bookingsData.bookings || [])
-                .filter((b: any) => b.status !== "CANCELLED")
-                .filter((b: any) => {
-                    const bookingDate = new Date(b.date);
-                    return bookingDate >= startDate && bookingDate <= endDate;
-                })
-                .map((b: any) => ({
-                    id: b.id,
-                    title: `کلاس خصوصی — ${b.teacher.name}`,
-                    // Combine date (YYYY-MM-DD) + startTime for correct positioning
-                    date: `${b.date.substring(0, 10)}T${b.startTime}:00`,
-                    type: "PRIVATE" as const,
-                    description: b.specialization
-                        ? `${b.specialization.subject} — پایه ${b.specialization.grade}`
-                        : undefined,
-                    startTime: b.startTime,
-                    endTime: b.endTime,
-                }));
-
-            setSessions([...regularSessions, ...privateBookings] as any);
+            setSessions(allSessions as any);
         } catch (error) {
             console.error("Error fetching sessions:", error);
         } finally {

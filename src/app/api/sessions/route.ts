@@ -145,6 +145,8 @@ export async function GET(request: NextRequest) {
                     select: {
                         id: true,
                         name: true,
+                        classType: true,
+                        sessionDuration: true,
                     },
                 },
             },

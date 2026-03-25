@@ -76,15 +76,9 @@ function PaymentCallbackContent() {
                                     {isPrivate ? "رزرو جلسه خصوصی با موفقیت انجام شد" : "ثبت‌نام شما با موفقیت انجام شد"}
                                 </p>
                             </div>
-                            {isPrivate ? (
-                                <Link href="/dashboard/student/book-session">
-                                    <Button className="w-full">مشاهده رزروهای من</Button>
-                                </Link>
-                            ) : (
                                 <Link href="/dashboard/student/classes">
                                     <Button className="w-full">مشاهده کلاس‌های من</Button>
                                 </Link>
-                            )}
                         </>
                     ) : (
                         <>
