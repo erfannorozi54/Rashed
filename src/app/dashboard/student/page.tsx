@@ -54,7 +54,7 @@ export default function StudentDashboard() {
 
             setUpcomingItems(merged);
 
-            const weeklyCount = merged.filter((item) => {
+            const weeklyCount = merged.filter((item: { sortDate: Date }) => {
                 return item.sortDate >= now && item.sortDate <= oneWeekFromNow;
             }).length;
 
