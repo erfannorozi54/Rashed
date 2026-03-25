@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { OTPService } from "@/lib/services/otp.service";
 import { Role } from "@prisma/client";
+import { validatePersianName } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
     try {
@@ -13,6 +14,23 @@ export async function POST(request: NextRequest) {
         if (!firstName || !lastName || !phone || !otp || !password) {
             return NextResponse.json(
                 { error: "تمام فیلدها الزامی هستند" },
+                { status: 400 }
+            );
+        }
+
+        // Validate Persian names
+        const firstNameValidation = validatePersianName(firstName);
+        if (!firstNameValidation.valid) {
+            return NextResponse.json(
+                { error: `نام: ${firstNameValidation.message}` },
+                { status: 400 }
+            );
+        }
+
+        const lastNameValidation = validatePersianName(lastName);
+        if (!lastNameValidation.valid) {
+            return NextResponse.json(
+                { error: `نام خانوادگی: ${lastNameValidation.message}` },
                 { status: 400 }
             );
         }

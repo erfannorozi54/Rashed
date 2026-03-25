@@ -24,6 +24,7 @@ import {
     ChevronLeft,
 } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
+import { validatePersianName } from "@/lib/utils";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -111,6 +112,8 @@ export default function RegisterPage() {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName]   = useState("");
     const [phone, setPhone]         = useState("");
+    const [firstNameError, setFirstNameError] = useState("");
+    const [lastNameError, setLastNameError] = useState("");
 
     const [otp, setOtp]                         = useState("");
     const [password, setPassword]               = useState("");
@@ -128,6 +131,42 @@ export default function RegisterPage() {
         return () => clearTimeout(t);
     }, [countdown]);
 
+    // Validate Persian names on change
+    useEffect(() => {
+        if (firstName) {
+            const validation = validatePersianName(firstName);
+            setFirstNameError(validation.valid ? "" : validation.message || "");
+        } else {
+            setFirstNameError("");
+        }
+    }, [firstName]);
+
+    useEffect(() => {
+        if (lastName) {
+            const validation = validatePersianName(lastName);
+            setLastNameError(validation.valid ? "" : validation.message || "");
+        } else {
+            setLastNameError("");
+        }
+    }, [lastName]);
+
+    // Filter non-Persian characters on input
+    const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        const persianRegex = /^[\u0600-\u06FF\u0660-\u0669\u06F0-\u06F9\s]*$/;
+        if (persianRegex.test(value)) {
+            setFirstName(value);
+        }
+    };
+
+    const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        const persianRegex = /^[\u0600-\u06FF\u0660-\u0669\u06F0-\u06F9\s]*$/;
+        if (persianRegex.test(value)) {
+            setLastName(value);
+        }
+    };
+
     const sendOtp = useCallback(async (phoneNumber: string, name?: string) => {
         return fetch("/api/auth/send-otp", {
             method: "POST",
@@ -139,6 +178,23 @@ export default function RegisterPage() {
     const handleStep1Submit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
+        
+        // Validate first name
+        const firstNameValidation = validatePersianName(firstName);
+        if (!firstNameValidation.valid) {
+            setFirstNameError(firstNameValidation.message || "");
+            setError(firstNameValidation.message || "");
+            return;
+        }
+        
+        // Validate last name
+        const lastNameValidation = validatePersianName(lastName);
+        if (!lastNameValidation.valid) {
+            setLastNameError(lastNameValidation.message || "");
+            setError(lastNameValidation.message || "");
+            return;
+        }
+        
         setLoading(true);
         try {
             const res  = await sendOtp(phone, firstName);
@@ -316,12 +372,15 @@ export default function RegisterPage() {
                                             type="text"
                                             placeholder="نام"
                                             value={firstName}
-                                            onChange={(e) => setFirstName(e.target.value)}
+                                            onChange={handleFirstNameChange}
                                             required
                                             disabled={loading}
-                                            className="pr-9"
+                                            className={cn("pr-9", firstNameError && "border-red-500 focus-visible:border-red-500")}
                                         />
                                     </div>
+                                    {firstNameError && (
+                                        <p className="text-xs text-red-600">{firstNameError}</p>
+                                    )}
                                 </div>
                                 <div className="space-y-1.5">
                                     <label htmlFor="lastName" className="text-sm font-medium text-[var(--foreground)]">
@@ -334,12 +393,15 @@ export default function RegisterPage() {
                                             type="text"
                                             placeholder="نام خانوادگی"
                                             value={lastName}
-                                            onChange={(e) => setLastName(e.target.value)}
+                                            onChange={handleLastNameChange}
                                             required
                                             disabled={loading}
-                                            className="pr-9"
+                                            className={cn("pr-9", lastNameError && "border-red-500 focus-visible:border-red-500")}
                                         />
                                     </div>
+                                    {lastNameError && (
+                                        <p className="text-xs text-red-600">{lastNameError}</p>
+                                    )}
                                 </div>
                             </div>
 
