@@ -9,6 +9,7 @@ import { BookOpen, Calendar, Users, FileText, Globe, CreditCard, User } from "lu
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import DashboardHeader from "@/components/layout/DashboardHeader";
+import { toJalali, getPersianDayName } from "@/lib/jalali-utils";
 
 interface Teacher {
   id: string;
@@ -181,7 +182,7 @@ export default function StudentClassesPage() {
                           {cls.latestSession && (
                             <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
                               <Calendar className="h-4 w-4" />
-                              <span>آخرین جلسه: {new Date(cls.latestSession.date).toLocaleDateString("fa-IR")}</span>
+                              <span>آخرین جلسه: {toJalali(cls.latestSession.date)} ({getPersianDayName(cls.latestSession.date)})</span>
                             </div>
                           )}
 

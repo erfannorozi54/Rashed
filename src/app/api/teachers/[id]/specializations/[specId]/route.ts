@@ -5,15 +5,25 @@ import { prisma } from "@/lib/prisma";
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+    { params }: { params: Promise<{ id: string; specId: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session || session.user.role !== "ADMIN") {
+        if (!session) {
+            return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+        }
+
+        const { id: teacherId, specId } = await params;
+
+        if (session.user.role !== "ADMIN" && session.user.id !== teacherId) {
             return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
         }
 
-        const { id } = await params;
+        const existing = await (prisma as any).teacherSpecialization.findUnique({ where: { id: specId } });
+        if (!existing || existing.teacherId !== teacherId) {
+            return NextResponse.json({ error: "تخصص یافت نشد" }, { status: 404 });
+        }
+
         const body = await request.json();
         const { subject, grade, content, price } = body;
 
@@ -21,20 +31,14 @@ export async function PATCH(
             return NextResponse.json({ error: "تمام فیلدها الزامی هستند و قیمت باید بیشتر از صفر باشد" }, { status: 400 });
         }
 
-        const existing = await (prisma as any).teacherSpecialization.findUnique({ where: { id } });
-        if (!existing) {
-            return NextResponse.json({ error: "تخصص یافت نشد" }, { status: 404 });
-        }
-
         const updated = await (prisma as any).teacherSpecialization.update({
-            where: { id },
+            where: { id: specId },
             data: {
                 subject: subject.trim(),
                 grade: grade.trim(),
                 content: content.trim(),
                 price: Number(price),
             },
-            include: { teacher: { select: { id: true, name: true } } },
         });
 
         return NextResponse.json({ specialization: updated });
@@ -46,22 +50,26 @@ export async function PATCH(
 
 export async function DELETE(
     _request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+    { params }: { params: Promise<{ id: string; specId: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session || session.user.role !== "ADMIN") {
+        if (!session) {
+            return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+        }
+
+        const { id: teacherId, specId } = await params;
+
+        if (session.user.role !== "ADMIN" && session.user.id !== teacherId) {
             return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
         }
 
-        const { id } = await params;
-
-        const existing = await (prisma as any).teacherSpecialization.findUnique({ where: { id } });
-        if (!existing) {
+        const existing = await (prisma as any).teacherSpecialization.findUnique({ where: { id: specId } });
+        if (!existing || existing.teacherId !== teacherId) {
             return NextResponse.json({ error: "تخصص یافت نشد" }, { status: 404 });
         }
 
-        await (prisma as any).teacherSpecialization.delete({ where: { id } });
+        await (prisma as any).teacherSpecialization.delete({ where: { id: specId } });
 
         return NextResponse.json({ success: true });
     } catch (error) {

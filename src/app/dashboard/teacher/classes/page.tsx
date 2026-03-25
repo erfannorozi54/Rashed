@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { BookOpen, Calendar, Users, PlusCircle, FileText } from "lucide-react";
 import Link from "next/link";
+import { toJalali, getPersianDayName } from "@/lib/jalali-utils";
 
 interface Teacher {
     id: string;
@@ -117,9 +118,7 @@ export default function TeacherClassesPage() {
                                         <Calendar className="h-4 w-4" />
                                         <span>
                                             آخرین جلسه:{" "}
-                                            {new Date(cls.latestSession.date).toLocaleDateString(
-                                                "fa-IR"
-                                            )}
+                                            {toJalali(cls.latestSession.date)} ({getPersianDayName(cls.latestSession.date)})
                                         </span>
                                     </div>
                                 )}

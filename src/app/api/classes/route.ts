@@ -88,8 +88,17 @@ export async function GET(request: NextRequest) {
             });
         }
 
+        // Deduplicate by class ID — Prisma can return duplicate records when a class
+        // has multiple teachers due to how it handles multiple relation joins internally.
+        const seen = new Set<string>();
+        const uniqueClasses = classes.filter((cls) => {
+            if (seen.has(cls.id)) return false;
+            seen.add(cls.id);
+            return true;
+        });
+
         // Format response
-        const formattedClasses = classes.map((cls) => {
+        const formattedClasses = uniqueClasses.map((cls) => {
             const base = {
                 id: cls.id,
                 name: cls.name,

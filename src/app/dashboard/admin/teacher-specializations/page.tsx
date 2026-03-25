@@ -5,10 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
-import { Textarea } from "@/components/ui/Textarea";
-import { Trash2, Plus, ChevronDown, ChevronUp, GraduationCap } from "lucide-react";
+import { Trash2, Plus, ChevronDown, ChevronUp, GraduationCap, Pencil, X, Check } from "lucide-react";
 import DashboardHeader from "@/components/layout/DashboardHeader";
-import { cn } from "@/lib/utils";
+import PersianPriceInput from "@/components/ui/PersianPriceInput";
 
 interface Specialization {
     id: string;
@@ -29,7 +28,7 @@ interface FormState {
     subject: string;
     grade: string;
     content: string;
-    price: string;
+    price: number | "";
 }
 
 const defaultForm: FormState = { subject: "", grade: "", content: "", price: "" };
@@ -43,6 +42,10 @@ export default function TeacherSpecializationsPage() {
     const [form, setForm] = useState<FormState>(defaultForm);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Edit state
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editForm, setEditForm] = useState<FormState>(defaultForm);
 
     useEffect(() => {
         fetchAll();
@@ -71,6 +74,10 @@ export default function TeacherSpecializationsPage() {
             setError("لطفاً تمام فیلدها را پر کنید");
             return;
         }
+        if (!form.price || Number(form.price) <= 0) {
+            setError("قیمت الزامی است و باید بیشتر از صفر باشد");
+            return;
+        }
         setSaving(true);
         setError(null);
         try {
@@ -82,7 +89,7 @@ export default function TeacherSpecializationsPage() {
                     subject: form.subject.trim(),
                     grade: form.grade.trim(),
                     content: form.content.trim(),
-                    price: Number(form.price) || 0,
+                    price: Number(form.price),
                 }),
             });
             const data = await res.json();
@@ -95,6 +102,62 @@ export default function TeacherSpecializationsPage() {
             setShowFormFor(null);
         } catch {
             setError("خطا در افزودن تخصص");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const startEdit = (spec: Specialization) => {
+        setEditingId(spec.id);
+        setEditForm({
+            subject: spec.subject,
+            grade: spec.grade,
+            content: spec.content,
+            price: spec.price,
+        });
+        setError(null);
+    };
+
+    const cancelEdit = () => {
+        setEditingId(null);
+        setEditForm(defaultForm);
+        setError(null);
+    };
+
+    const handleEdit = async (specId: string) => {
+        if (!editForm.subject.trim() || !editForm.grade.trim() || !editForm.content.trim()) {
+            setError("لطفاً تمام فیلدها را پر کنید");
+            return;
+        }
+        if (!editForm.price || Number(editForm.price) <= 0) {
+            setError("قیمت الزامی است و باید بیشتر از صفر باشد");
+            return;
+        }
+        setSaving(true);
+        setError(null);
+        try {
+            const res = await fetch(`/api/admin/teacher-specializations/${specId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    subject: editForm.subject.trim(),
+                    grade: editForm.grade.trim(),
+                    content: editForm.content.trim(),
+                    price: Number(editForm.price),
+                }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setError(data.error || "خطا در ویرایش تخصص");
+                return;
+            }
+            setSpecializations((prev) =>
+                prev.map((s) => (s.id === specId ? data.specialization : s))
+            );
+            setEditingId(null);
+            setEditForm(defaultForm);
+        } catch {
+            setError("خطا در ویرایش تخصص");
         } finally {
             setSaving(false);
         }
@@ -180,35 +243,116 @@ export default function TeacherSpecializationsPage() {
                                                 </p>
                                             ) : (
                                                 <div className="space-y-2">
-                                                    {specs.map((spec) => (
-                                                        <div
-                                                            key={spec.id}
-                                                            className="flex items-center justify-between p-3 bg-[var(--muted)] rounded-lg"
-                                                        >
-                                                            <div className="space-y-0.5">
-                                                                <p className="font-medium text-sm">{spec.content}</p>
-                                                                <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
-                                                                    <span>درس: {spec.subject}</span>
-                                                                    <span>•</span>
-                                                                    <span>پایه: {spec.grade}</span>
-                                                                    <span>•</span>
-                                                                    <span>
-                                                                        {spec.price > 0
-                                                                            ? `${spec.price.toLocaleString("fa-IR")} تومان`
-                                                                            : "رایگان"}
-                                                                    </span>
+                                                    {specs.map((spec) =>
+                                                        editingId === spec.id ? (
+                                                            /* Inline edit form */
+                                                            <div
+                                                                key={spec.id}
+                                                                className="border border-[var(--primary-600)] rounded-lg p-4 space-y-3"
+                                                            >
+                                                                <p className="font-medium text-sm">ویرایش تخصص</p>
+                                                                <div className="grid grid-cols-2 gap-3">
+                                                                    <div className="space-y-1">
+                                                                        <Label>درس</Label>
+                                                                        <Input
+                                                                            placeholder="مثال: ریاضی"
+                                                                            value={editForm.subject}
+                                                                            onChange={(e) =>
+                                                                                setEditForm((f) => ({ ...f, subject: e.target.value }))
+                                                                            }
+                                                                        />
+                                                                    </div>
+                                                                    <div className="space-y-1">
+                                                                        <Label>پایه</Label>
+                                                                        <Input
+                                                                            placeholder="مثال: یازدهم"
+                                                                            value={editForm.grade}
+                                                                            onChange={(e) =>
+                                                                                setEditForm((f) => ({ ...f, grade: e.target.value }))
+                                                                            }
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="space-y-1">
+                                                                    <Label>عنوان تدریس</Label>
+                                                                    <Input
+                                                                        placeholder="مثال: ریاضی کنکور یازدهم"
+                                                                        value={editForm.content}
+                                                                        onChange={(e) =>
+                                                                            setEditForm((f) => ({ ...f, content: e.target.value }))
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                                <div className="space-y-1">
+                                                                    <Label>قیمت هر جلسه (تومان) *</Label>
+                                                                    <PersianPriceInput
+                                                                        value={editForm.price}
+                                                                        onChange={(v) =>
+                                                                            setEditForm((f) => ({ ...f, price: v }))
+                                                                        }
+                                                                        placeholder="مثال: ۵۰۰٬۰۰۰"
+                                                                    />
+                                                                </div>
+                                                                <div className="flex gap-2">
+                                                                    <Button
+                                                                        size="sm"
+                                                                        onClick={() => handleEdit(spec.id)}
+                                                                        disabled={saving}
+                                                                    >
+                                                                        <Check className="h-4 w-4 ml-1" />
+                                                                        {saving ? "در حال ذخیره..." : "ذخیره"}
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        onClick={cancelEdit}
+                                                                    >
+                                                                        <X className="h-4 w-4 ml-1" />
+                                                                        انصراف
+                                                                    </Button>
                                                                 </div>
                                                             </div>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() => handleDelete(spec.id)}
-                                                                className="text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
+                                                        ) : (
+                                                            /* Spec row */
+                                                            <div
+                                                                key={spec.id}
+                                                                className="flex items-center justify-between p-3 bg-[var(--muted)] rounded-lg"
                                                             >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
-                                                        </div>
-                                                    ))}
+                                                                <div className="space-y-0.5">
+                                                                    <p className="font-medium text-sm">{spec.content}</p>
+                                                                    <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
+                                                                        <span>درس: {spec.subject}</span>
+                                                                        <span>•</span>
+                                                                        <span>پایه: {spec.grade}</span>
+                                                                        <span>•</span>
+                                                                        <span>
+                                                                            {spec.price > 0
+                                                                                ? `${spec.price.toLocaleString("fa-IR")} تومان`
+                                                                                : "رایگان"}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center gap-1 shrink-0">
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        onClick={() => startEdit(spec)}
+                                                                        className="text-[var(--muted-foreground)] hover:text-[var(--primary-600)] hover:bg-blue-50"
+                                                                    >
+                                                                        <Pencil className="h-4 w-4" />
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        onClick={() => handleDelete(spec.id)}
+                                                                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                    )}
                                                 </div>
                                             )}
 
@@ -252,15 +396,12 @@ export default function TeacherSpecializationsPage() {
                                                         />
                                                     </div>
                                                     <div className="space-y-1">
-                                                        <Label htmlFor={`price-${teacher.id}`}>قیمت هر جلسه (تومان)</Label>
-                                                        <Input
+                                                        <Label htmlFor={`price-${teacher.id}`}>قیمت هر جلسه (تومان) *</Label>
+                                                        <PersianPriceInput
                                                             id={`price-${teacher.id}`}
-                                                            type="number"
-                                                            placeholder="مثال: 500000"
                                                             value={form.price}
-                                                            onChange={(e) =>
-                                                                setForm((f) => ({ ...f, price: e.target.value }))
-                                                            }
+                                                            onChange={(v) => setForm((f) => ({ ...f, price: v }))}
+                                                            placeholder="مثال: ۵۰۰٬۰۰۰"
                                                         />
                                                     </div>
                                                     <div className="flex gap-2">
@@ -291,6 +432,7 @@ export default function TeacherSpecializationsPage() {
                                                     onClick={() => {
                                                         setShowFormFor(teacher.id);
                                                         setForm(defaultForm);
+                                                        setEditingId(null);
                                                         setError(null);
                                                     }}
                                                     className="gap-1"

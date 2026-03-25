@@ -110,6 +110,7 @@ export default function TeacherBookPage() {
 
     const handleBook = async () => {
         if (!selectedDate || !selectedSlot) return;
+        if (teacher?.specializations.length && !selectedSpec) return;
         setBooking(true);
         setError(null);
         try {
@@ -199,16 +200,20 @@ export default function TeacherBookPage() {
                         <CardHeader>
                             <CardTitle className="text-base flex items-center gap-2">
                                 <span className="w-6 h-6 rounded-full bg-[var(--primary-600)] text-white text-xs flex items-center justify-center font-bold">۱</span>
-                                موضوع درس (اختیاری)
+                                موضوع درس
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <select
                                 value={selectedSpec}
-                                onChange={(e) => setSelectedSpec(e.target.value)}
+                                onChange={(e) => {
+                                    setSelectedSpec(e.target.value);
+                                    setSelectedDate(null);
+                                    setSelectedSlot(null);
+                                }}
                                 className="w-full rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)]"
                             >
-                                <option value="">موضوع درس را انتخاب کنید (اختیاری)</option>
+                                <option value="">موضوع درس را انتخاب کنید</option>
                                 {teacher.specializations.map((s) => (
                                     <option key={s.id} value={s.id}>
                                         {s.content} — {s.price > 0 ? `${s.price.toLocaleString("fa-IR")} تومان` : "رایگان"}
@@ -219,25 +224,27 @@ export default function TeacherBookPage() {
                     </Card>
                 )}
 
-                {/* Step 2: Select date */}
-                <Card className="mb-4">
-                    <CardHeader>
-                        <CardTitle className="text-base flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-full bg-[var(--primary-600)] text-white text-xs flex items-center justify-center font-bold">
-                                {teacher.specializations.length > 0 ? "۲" : "۱"}
-                            </span>
-                            انتخاب تاریخ
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <PersianDatePicker
-                            value={selectedDate || undefined}
-                            onChange={setSelectedDate}
-                            placeholder="تاریخ جلسه را انتخاب کنید"
-                            minDate={today}
-                        />
-                    </CardContent>
-                </Card>
+                {/* Step 2: Select date — shown only when spec is satisfied */}
+                {(teacher.specializations.length === 0 || selectedSpec) && (
+                    <Card className="mb-4">
+                        <CardHeader>
+                            <CardTitle className="text-base flex items-center gap-2">
+                                <span className="w-6 h-6 rounded-full bg-[var(--primary-600)] text-white text-xs flex items-center justify-center font-bold">
+                                    {teacher.specializations.length > 0 ? "۲" : "۱"}
+                                </span>
+                                انتخاب تاریخ
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <PersianDatePicker
+                                value={selectedDate || undefined}
+                                onChange={setSelectedDate}
+                                placeholder="تاریخ جلسه را انتخاب کنید"
+                                minDate={today}
+                            />
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Step 3: Select time slot */}
                 {selectedDate && (
