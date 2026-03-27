@@ -1,4 +1,5 @@
 import moment from "moment-jalaali";
+import "moment-timezone";
 
 // Configure moment-jalaali to use Persian numerals and calendar by default
 moment.loadPersian({ usePersianDigits: false, dialect: "persian-modern" });
@@ -98,25 +99,44 @@ export function formatPersianDateLong(date: Date | string): string {
 }
 
 /**
- * Format time in 24-hour format
+ * Format time in 24-hour format (timezone-aware)
  * @param date Date to extract time from
+ * @param timezone Timezone to use (default: Asia/Tehran)
  * @returns Time string like "14:30"
  */
-export function formatTime(date: Date | string): string {
-    return moment(date).format("HH:mm");
+export function formatTime(date: Date | string, timezone: string = "Asia/Tehran"): string {
+    return moment(date).tz(timezone).format("HH:mm");
 }
 
 /**
- * Parse time string and combine with Jalali date
+ * Parse time string and combine with Jalali date (timezone-aware)
  * @param jalaliDate Jalali date string
  * @param timeString Time string (HH:mm)
- * @returns JavaScript Date object
+ * @param timezone Timezone to use (default: Asia/Tehran)
+ * @returns JavaScript Date object in UTC
  */
-export function parseJalaliDateTime(jalaliDate: string, timeString: string): Date {
+export function parseJalaliDateTime(jalaliDate: string, timeString: string, timezone: string = "Asia/Tehran"): Date {
+    // Parse the Jalali date
     const datePart = moment(jalaliDate, "jYYYY/jMM/jDD");
     const [hours, minutes] = timeString.split(":").map(Number);
+    // Set the time in the specified timezone
+    datePart.tz(timezone);
     datePart.hours(hours).minutes(minutes).seconds(0).milliseconds(0);
+    // Return as UTC Date object
     return datePart.toDate();
+}
+
+/**
+ * Create a datetime in Tehran timezone from ISO date and time string
+ * @param isoDate ISO date string (from DatePicker)
+ * @param timeString Time string (HH:mm)
+ * @returns JavaScript Date object (UTC)
+ */
+export function createTehranDateTime(isoDate: string, timeString: string): Date {
+    // Extract date parts from ISO string
+    const dateObj = new Date(isoDate);
+    const jalaliDateStr = toJalali(dateObj, "jYYYY/jMM/jDD");
+    return parseJalaliDateTime(jalaliDateStr, timeString, "Asia/Tehran");
 }
 
 /**

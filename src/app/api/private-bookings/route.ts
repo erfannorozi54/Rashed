@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { getTeacherFreeSlots } from "@/lib/availability-utils";
+import { createTehranDateTime } from "@/lib/jalali-utils";
 
 function timeToMin(t: string): number {
     const [h, m] = t.split(":").map(Number);
@@ -86,11 +87,8 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "این زمان در دسترس نیست" }, { status: 409 });
         }
 
-        // Build session datetime by combining date + startTime
-        const dateOnly = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
-        const [hh, mm] = startTime.split(":").map(Number);
-        const sessionDateTime = new Date(dateOnly);
-        sessionDateTime.setHours(hh, mm, 0, 0);
+        // Build session datetime in Tehran timezone
+        const sessionDateTime = createTehranDateTime(date, startTime);
 
         // Create Class (PRIVATE) + Session + Enrollment + Payment in a transaction
         const result = await prisma.$transaction(async (tx) => {

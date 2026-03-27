@@ -9,7 +9,7 @@ import { BookOpen, Calendar, Users, FileText, Globe, CreditCard, User } from "lu
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import DashboardHeader from "@/components/layout/DashboardHeader";
-import { toJalali, getPersianDayName } from "@/lib/jalali-utils";
+import { toJalali, getPersianDayName, formatTime } from "@/lib/jalali-utils";
 
 interface Teacher {
   id: string;
@@ -47,9 +47,7 @@ const ENROLLMENT_BADGE = {
 function getSessionTimes(dateStr: string, durationMin: number) {
   const start = new Date(dateStr);
   const end = new Date(start.getTime() + durationMin * 60_000);
-  const fmt = (d: Date) =>
-    `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-  return { startTime: fmt(start), endTime: fmt(end) };
+  return { startTime: formatTime(start), endTime: formatTime(end) };
 }
 
 export default function StudentClassesPage() {

@@ -8,6 +8,7 @@ import { BookOpen, Calendar, FileText, LogOut, GraduationCap, ChevronLeft, Credi
 import Link from "next/link";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 import { SessionTypeBadge } from "@/components/SessionTypeBadge";
+import { formatTime } from "@/lib/jalali-utils";
 
 
 export default function StudentDashboard() {
@@ -238,9 +239,10 @@ export default function StudentDashboard() {
                                 <div className="space-y-4">
                                     {upcomingItems.map((item: any) => {
                                         if (item.kind === "private") {
-                                            const startTime = `${String(new Date(item.date).getHours()).padStart(2, "0")}:${String(new Date(item.date).getMinutes()).padStart(2, "0")}`;
-                                            const endDate = new Date(new Date(item.date).getTime() + (item.class?.sessionDuration ?? 90) * 60_000);
-                                            const endTime = `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}`;
+                                            const sessionDate = new Date(item.date);
+                                            const startTime = formatTime(sessionDate);
+                                            const endDate = new Date(sessionDate.getTime() + (item.class?.sessionDuration ?? 90) * 60_000);
+                                            const endTime = formatTime(endDate);
                                             return (
                                                 <div
                                                     key={item.id}
@@ -298,7 +300,7 @@ export default function StudentDashboard() {
                                                             <span className="mx-1">•</span>
                                                             <Calendar className="h-3 w-3" />
                                                             <span>
-                                                                {new Date(item.date).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })}
+                                                                {formatTime(item.date)}
                                                             </span>
                                                         </div>
                                                     </div>
