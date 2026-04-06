@@ -409,7 +409,7 @@ export default function ClassDetailPage({ params }: { params: { id: string } }) 
                                 )}
                               </div>
 
-                              {hasSubmission ? (
+                              {hasSubmission && assignment.submission ? (
                                 <div className="p-2 bg-white rounded border border-green-200">
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 text-sm text-green-700">
