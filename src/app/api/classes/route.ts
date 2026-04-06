@@ -49,7 +49,6 @@ export async function GET(request: NextRequest) {
                         orderBy: {
                             date: "desc",
                         },
-                        take: 1,
                     },
                 },
                 orderBy: {
@@ -79,7 +78,6 @@ export async function GET(request: NextRequest) {
                         orderBy: {
                             date: "desc",
                         },
-                        take: 1,
                     },
                 },
                 orderBy: {
@@ -99,6 +97,11 @@ export async function GET(request: NextRequest) {
 
         // Format response
         const formattedClasses = uniqueClasses.map((cls) => {
+            const now = new Date();
+            const allSessions = cls.sessions;
+            const latestSession = allSessions[0] || null;
+            const isCompleted = allSessions.length > 0 && allSessions.every((s) => new Date(s.date) < now);
+
             const base = {
                 id: cls.id,
                 name: cls.name,
@@ -110,7 +113,9 @@ export async function GET(request: NextRequest) {
                 minSessionsToPay: cls.minSessionsToPay,
                 teachers: cls.teachers.map((t) => t.teacher),
                 studentCount: cls.students.length,
-                latestSession: cls.sessions[0] || null,
+                latestSession,
+                allSessions,
+                isCompleted,
                 createdAt: cls.createdAt,
             };
 

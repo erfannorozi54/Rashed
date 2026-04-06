@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { BookOpen, Calendar, Download, Users, FileText, Clock, CheckCircle, XCircle, CreditCard } from "lucide-react";
+import { BookOpen, Calendar, Download, Users, FileText, Clock, CheckCircle, XCircle, CreditCard, Upload, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import DashboardHeader from "@/components/layout/DashboardHeader";
@@ -35,7 +35,16 @@ interface SessionContent {
 interface Assignment {
   id: string;
   title: string;
+  description: string | null;
+  fileUrl: string | null;
   dueDate: string | null;
+  submission?: {
+    id: string;
+    fileUrl: string | null;
+    submittedAt: string;
+    grade: number | null;
+    feedback: string | null;
+  } | null;
 }
 
 interface Attendance {
@@ -75,6 +84,7 @@ export default function ClassDetailPage({ params }: { params: { id: string } }) 
   const router = useRouter();
   const [classData, setClassData] = useState<ClassData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [uploadingAssignmentId, setUploadingAssignmentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -100,6 +110,33 @@ export default function ClassDetailPage({ params }: { params: { id: string } }) 
       alert("خطا در دریافت اطلاعات کلاس");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (assignmentId: string, file: File) => {
+    setUploadingAssignmentId(assignmentId);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("assignmentId", assignmentId);
+
+    try {
+      const response = await fetch("/api/submissions", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        alert("پاسخ با موفقیت ارسال شد");
+        fetchClassData();
+      } else {
+        const data = await response.json();
+        alert(data.error || "خطا در ارسال پاسخ");
+      }
+    } catch (error) {
+      console.error("Error uploading submission:", error);
+      alert("خطا در ارسال پاسخ");
+    } finally {
+      setUploadingAssignmentId(null);
     }
   };
 
@@ -323,22 +360,121 @@ export default function ClassDetailPage({ params }: { params: { id: string } }) 
 
                   {/* Assignments */}
                   {session.assignments.length > 0 && (
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <p className="text-sm font-medium">تکالیف:</p>
-                      <div className="grid gap-2">
-                        {session.assignments.map((assignment) => (
-                          <div
-                            key={assignment.id}
-                            className="flex items-center justify-between p-2 rounded border border-[var(--border)]"
-                          >
-                            <p className="text-sm">{assignment.title}</p>
-                            {assignment.dueDate && (
-                              <span className="text-xs text-[var(--muted-foreground)]">
-                                مهلت: {new Date(assignment.dueDate).toLocaleDateString("fa-IR")}
-                              </span>
-                            )}
-                          </div>
-                        ))}
+                      <div className="grid gap-3">
+                        {session.assignments.map((assignment) => {
+                          const isOverdue = assignment.dueDate && new Date(assignment.dueDate) < new Date();
+                          const hasSubmission = !!assignment.submission;
+
+                          return (
+                            <div
+                              key={assignment.id}
+                              className={cn(
+                                "p-3 rounded-lg border space-y-3",
+                                hasSubmission ? "border-green-200 bg-green-50" : "border-[var(--border)]"
+                              )}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1">
+                                  <p className="font-medium text-sm">{assignment.title}</p>
+                                  {assignment.description && (
+                                    <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                                      {assignment.description}
+                                    </p>
+                                  )}
+                                  {assignment.dueDate && (
+                                    <div className={cn(
+                                      "flex items-center gap-1 text-xs mt-2",
+                                      isOverdue && !hasSubmission ? "text-red-600" : "text-[var(--muted-foreground)]"
+                                    )}>
+                                      <Clock className="h-3 w-3" />
+                                      <span>مهلت: {new Date(assignment.dueDate).toLocaleDateString("fa-IR")}</span>
+                                      {isOverdue && !hasSubmission && <AlertCircle className="h-3 w-3 mr-1" />}
+                                    </div>
+                                  )}
+                                </div>
+                                {assignment.fileUrl && (
+                                  <a
+                                    href={assignment.fileUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="shrink-0"
+                                  >
+                                    <Button size="sm" variant="outline">
+                                      <Download className="h-3 w-3 ml-1" />
+                                      دانلود سوال
+                                    </Button>
+                                  </a>
+                                )}
+                              </div>
+
+                              {hasSubmission ? (
+                                <div className="p-2 bg-white rounded border border-green-200">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 text-sm text-green-700">
+                                      <CheckCircle className="h-4 w-4" />
+                                      <span>ارسال شده در {new Date(assignment.submission.submittedAt).toLocaleDateString("fa-IR")}</span>
+                                    </div>
+                                    {assignment.submission.fileUrl && (
+                                      <a href={assignment.submission.fileUrl} target="_blank" rel="noopener noreferrer">
+                                        <Button size="sm" variant="ghost">
+                                          <Download className="h-3 w-3 ml-1" />
+                                          مشاهده پاسخ
+                                        </Button>
+                                      </a>
+                                    )}
+                                  </div>
+                                  {assignment.submission.grade !== null && (
+                                    <p className="text-sm mt-2">
+                                      نمره: <span className="font-bold">{assignment.submission.grade}</span>
+                                    </p>
+                                  )}
+                                  {assignment.submission.feedback && (
+                                    <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                                      بازخورد: {assignment.submission.feedback}
+                                    </p>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="file"
+                                    id={`file-${assignment.id}`}
+                                    className="hidden"
+                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleFileUpload(assignment.id, file);
+                                    }}
+                                    disabled={uploadingAssignmentId === assignment.id}
+                                  />
+                                  <label htmlFor={`file-${assignment.id}`} className="flex-1">
+                                    <Button
+                                      size="sm"
+                                      variant="default"
+                                      className="w-full"
+                                      disabled={uploadingAssignmentId === assignment.id}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        document.getElementById(`file-${assignment.id}`)?.click();
+                                      }}
+                                    >
+                                      {uploadingAssignmentId === assignment.id ? (
+                                        <>در حال ارسال...</>
+                                      ) : (
+                                        <>
+                                          <Upload className="h-3 w-3 ml-1" />
+                                          ارسال پاسخ
+                                        </>
+                                      )}
+                                    </Button>
+                                  </label>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}

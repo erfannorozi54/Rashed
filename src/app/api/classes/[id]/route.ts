@@ -47,10 +47,19 @@ export async function GET(
                     include: {
                         contents: true,
                         assignments: {
-                            select: {
-                                id: true,
-                                title: true,
-                                dueDate: true,
+                            include: {
+                                submissions: session.user.role === "STUDENT"
+                                    ? {
+                                        where: { studentId: session.user.id },
+                                        select: {
+                                            id: true,
+                                            fileUrl: true,
+                                            submittedAt: true,
+                                            grade: true,
+                                            feedback: true,
+                                        },
+                                    }
+                                    : false,
                             },
                         },
                         attendances: session.user.role === "ADMIN"
@@ -123,8 +132,9 @@ export async function GET(
 
         // Separate past and upcoming sessions
         const now = new Date();
-        const pastSessions = classData.sessions.filter((s) => s.date < now);
-        const upcomingSessions = classData.sessions.filter((s) => s.date >= now);
+        const formattedSessionsList = isAdmin ? formattedSessions : formattedSessions;
+        const pastSessions = formattedSessionsList.filter((s: any) => new Date(s.date) < now);
+        const upcomingSessions = formattedSessionsList.filter((s: any) => new Date(s.date) >= now);
 
         // For admin: include attendance count in sessions
         const formattedSessions = isAdmin
@@ -143,7 +153,19 @@ export async function GET(
                 contents: session.contents,
                 assignments: session.assignments,
             }))
-            : [...pastSessions, ...upcomingSessions];
+            : classData.sessions.map((session) => ({
+                ...session,
+                assignments: session.user.role === "STUDENT"
+                    ? session.assignments.map((assignment: any) => ({
+                        id: assignment.id,
+                        title: assignment.title,
+                        description: assignment.description,
+                        fileUrl: assignment.fileUrl,
+                        dueDate: assignment.dueDate,
+                        submission: assignment.submissions?.[0] || null,
+                    }))
+                    : session.assignments,
+            }));
 
         const response = {
             id: classData.id,
