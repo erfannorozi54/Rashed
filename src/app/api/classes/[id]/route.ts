@@ -149,7 +149,7 @@ export async function GET(
             }))
             : classData.sessions.map((session) => ({
                 ...session,
-                assignments: session.user.role === "STUDENT"
+                assignments: !isAdmin
                     ? session.assignments.map((assignment: any) => ({
                         id: assignment.id,
                         title: assignment.title,
