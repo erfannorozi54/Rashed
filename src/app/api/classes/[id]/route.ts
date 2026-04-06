@@ -130,12 +130,6 @@ export async function GET(
             }));
         }
 
-        // Separate past and upcoming sessions
-        const now = new Date();
-        const formattedSessionsList = isAdmin ? formattedSessions : formattedSessions;
-        const pastSessions = formattedSessionsList.filter((s: any) => new Date(s.date) < now);
-        const upcomingSessions = formattedSessionsList.filter((s: any) => new Date(s.date) >= now);
-
         // For admin: include attendance count in sessions
         const formattedSessions = isAdmin
             ? classData.sessions.map((session) => ({
@@ -166,6 +160,11 @@ export async function GET(
                     }))
                     : session.assignments,
             }));
+
+        // Separate past and upcoming sessions
+        const now = new Date();
+        const pastSessions = formattedSessions.filter((s: any) => new Date(s.date) < now);
+        const upcomingSessions = formattedSessions.filter((s: any) => new Date(s.date) >= now);
 
         const response = {
             id: classData.id,
