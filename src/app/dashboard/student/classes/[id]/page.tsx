@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -79,7 +79,8 @@ interface ClassData {
   payment?: { id: string; amount: number; status: string } | null;
 }
 
-export default function ClassDetailPage({ params }: { params: { id: string } }) {
+export default function ClassDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const { data: session } = useSession();
   const router = useRouter();
   const [classData, setClassData] = useState<ClassData | null>(null);
@@ -93,11 +94,11 @@ export default function ClassDetailPage({ params }: { params: { id: string } }) 
       return;
     }
     fetchClassData();
-  }, [session, router, params.id]);
+  }, [session, router, id]);
 
   const fetchClassData = async () => {
     try {
-      const response = await fetch(`/api/classes/${params.id}`);
+      const response = await fetch(`/api/classes/${id}`);
       const data = await response.json();
       if (response.ok) {
         setClassData(data.class);

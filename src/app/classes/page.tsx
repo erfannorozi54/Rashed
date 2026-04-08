@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { GraduationCap, Users, Calendar, BookOpen } from "lucide-react";
+import { GraduationCap, Users, Calendar, BookOpen, Clock, Timer } from "lucide-react";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 
 interface PublicClass {
@@ -15,6 +15,13 @@ interface PublicClass {
     description: string | null;
     sessionPrice: number;
     sessionCount: number;
+    heldSessionsCount: number;
+    remainingSessionsCount: number;
+    scheduleInfo: string;
+    scheduleDetails: {
+        days: string[];
+        times: string[];
+    } | null;
     studentCount: number;
     maxCapacity: number | null;
     teachers: { id: string; name: string }[];
@@ -138,16 +145,41 @@ export default function PublicClassesPage() {
                                             <span>{cls.teachers.map((t) => t.name).join("، ")}</span>
                                         </div>
                                     )}
-                                    <div className="flex items-center gap-4 text-sm text-[var(--muted-foreground)]">
-                                        <span className="flex items-center gap-1">
-                                            <Calendar className="h-4 w-4" />
-                                            {cls.sessionCount} جلسه
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                            <Users className="h-4 w-4" />
-                                            {cls.studentCount} دانش‌آموز
-                                            {cls.maxCapacity ? ` / ${cls.maxCapacity}` : ""}
-                                        </span>
+                                    
+                                    {/* Session Information */}
+                                    <div className="space-y-3 text-sm text-[var(--muted-foreground)]">
+                                        {/* Total Sessions */}
+                                        <div className="flex items-center gap-4">
+                                            <span className="flex items-center gap-1">
+                                                <Calendar className="h-4 w-4" />
+                                                {cls.sessionCount} جلسه
+                                            </span>
+                                            {cls.heldSessionsCount > 0 && (
+                                                <span className="text-[var(--muted-foreground)]">
+                                                    ({cls.heldSessionsCount} برگزار شده، {cls.remainingSessionsCount} باقی‌مانده)
+                                                </span>
+                                            )}
+                                        </div>
+                                        
+                                        {/* Days and Times */}
+                                        {cls.scheduleDetails && (
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-1">
+                                                    <Clock className="h-4 w-4" />
+                                                    <span className="font-medium">{cls.scheduleDetails.days.join(" و ")}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <Timer className="h-4 w-4" />
+                                                    <span>ساعت {cls.scheduleDetails.times.join(" و ")}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="flex items-center gap-1 text-sm text-[var(--muted-foreground)]">
+                                        <Users className="h-4 w-4" />
+                                        <span>{cls.studentCount} دانش‌آموز</span>
+                                        {cls.maxCapacity && <span> / {cls.maxCapacity}</span>}
                                     </div>
                                     <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]">
                                         <span className="font-bold text-[var(--primary-600)] text-lg">
