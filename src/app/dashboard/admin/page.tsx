@@ -9,6 +9,8 @@ import { GraduationCap, Users, RefreshCw, Clock, BookMarked } from "lucide-react
 import Link from "next/link";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 import MiniCalendar from "@/components/ui/MiniCalendar";
+import DashboardQuickCard from "@/components/ui/DashboardQuickCard";
+import { toJalali } from "@/lib/jalali-utils";
 
 interface Session {
     id: string;
@@ -125,178 +127,186 @@ export default function AdminDashboard() {
         <div className="min-h-screen bg-[var(--muted)]">
             <DashboardHeader title="پنل مدیریت" />
 
-            <main className="container mx-auto px-4 py-8">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
-                        داشبورد مدیریت
-                    </h1>
-                    <p className="text-[var(--muted-foreground)]">
-                        مشاهده و مدیریت کاربران، کلاسها و جلسات
-                    </p>
+            <main className="container mx-auto px-4 py-6 lg:py-8">
+                <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_320px]">
+                    <section className="space-y-6">
+                        <Card className="rounded-3xl border-none bg-gradient-to-l from-[var(--primary-600)] via-[var(--primary-700)] to-[var(--secondary-700)] text-white shadow-lg">
+                            <CardContent className="flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-end lg:justify-between">
+                                <div className="space-y-3">
+                                    <div className="space-y-2">
+                                        <p className="text-sm text-white/80">نمای کلی امروز</p>
+                                        <h1 className="text-2xl font-bold sm:text-3xl">داشبورد مدیریت</h1>
+                                        <p className="max-w-2xl text-sm leading-6 text-white/80">
+                                            مدیریت کاربران، کلاس ها و وضعیت جلسات از یک نمای فشرده و سریع.
+                                        </p>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-2 text-xs">
+                                        <span className="rounded-full bg-white/15 px-3 py-1.5">
+                                            {users.filter((user) => user.role === "STUDENT").length} دانش آموز
+                                        </span>
+                                        <span className="rounded-full bg-white/15 px-3 py-1.5">
+                                            {users.filter((user) => user.role === "TEACHER").length} معلم
+                                        </span>
+                                        <span className="rounded-full bg-white/15 px-3 py-1.5">{classCount} کلاس فعال</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-wrap gap-3">
+                                    <Link href="/dashboard/admin/classes">
+                                        <Button className="bg-white text-[var(--primary-700)] hover:bg-white/90">
+                                            مدیریت کلاس ها
+                                        </Button>
+                                    </Link>
+                                    <Link href="/dashboard/admin/teachers">
+                                        <Button variant="outline" className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white">
+                                            بررسی معلمان
+                                        </Button>
+                                    </Link>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                            <DashboardQuickCard
+                                href="/dashboard/admin/students"
+                                title="دانش آموزان"
+                                value={users.filter((user) => user.role === "STUDENT").length}
+                                description="لیست ثبت نام ها و وضعیت حضور را سریع تر پیگیری کنید."
+                                icon={Users}
+                                accentClassName="text-[var(--primary-600)]"
+                            />
+                            <DashboardQuickCard
+                                href="/dashboard/admin/teachers"
+                                title="معلمان"
+                                value={users.filter((user) => user.role === "TEACHER").length}
+                                description="برنامه ها، تخصص ها و ظرفیت تدریس را مرور کنید."
+                                icon={GraduationCap}
+                                accentClassName="text-[var(--secondary-600)]"
+                            />
+                            <DashboardQuickCard
+                                href="/dashboard/admin/classes"
+                                title="کلاس ها"
+                                value={classCount}
+                                description="کلاس های فعال و برنامه ریزی جاری را یک جا ببینید."
+                                icon={BookMarked}
+                                accentClassName="text-emerald-600"
+                            />
+                            <DashboardQuickCard
+                                href="/dashboard/admin/refunds"
+                                title="استردادها"
+                                description="درخواست های بازگشت وجه و بررسی های مالی را پیگیری کنید."
+                                icon={RefreshCw}
+                                accentClassName="text-amber-600"
+                            />
+                        </div>
+
+                        <Card className="rounded-3xl">
+                            <CardHeader className="gap-2 p-5">
+                                <CardTitle className="flex items-center gap-2 text-lg">
+                                    <Users className="h-5 w-5" />
+                                    همه کاربران ({users.length})
+                                </CardTitle>
+                                <CardDescription>تمامی کاربران ثبت نام شده در سیستم</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                {loading ? (
+                                    <div className="py-8 text-center">
+                                        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-[var(--primary-600)]"></div>
+                                    </div>
+                                ) : users.length === 0 ? (
+                                    <p className="py-8 text-center text-[var(--muted-foreground)]">هیچ کاربری یافت نشد</p>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full min-w-[760px]">
+                                            <thead>
+                                                <tr className="border-y border-[var(--border)] bg-[var(--muted)]/60">
+                                                    <th className="px-5 py-3 text-right text-xs font-semibold text-[var(--muted-foreground)]">نام</th>
+                                                    <th className="px-5 py-3 text-right text-xs font-semibold text-[var(--muted-foreground)]">شماره تلفن</th>
+                                                    <th className="px-5 py-3 text-right text-xs font-semibold text-[var(--muted-foreground)]">نقش</th>
+                                                    <th className="px-5 py-3 text-right text-xs font-semibold text-[var(--muted-foreground)]">تاریخ ثبت نام</th>
+                                                    <th className="px-5 py-3 text-right text-xs font-semibold text-[var(--muted-foreground)]">عملیات</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {users.map((user) => (
+                                                    <tr key={user.id} className="border-b border-[var(--border)] transition-colors hover:bg-[var(--muted)]/40">
+                                                        <td className="px-5 py-3.5">
+                                                            <Link href={`/dashboard/admin/users/${user.id}`} className="text-sm font-medium hover:text-[var(--primary-600)]">
+                                                                {user.name}
+                                                            </Link>
+                                                        </td>
+                                                        <td className="px-5 py-3.5 text-sm font-mono">{user.phone}</td>
+                                                        <td className="px-5 py-3.5 text-sm">
+                                                            <span
+                                                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${user.role === "ADMIN"
+                                                                    ? "bg-red-100 text-red-700"
+                                                                    : user.role === "TEACHER"
+                                                                        ? "bg-blue-100 text-blue-700"
+                                                                        : "bg-green-100 text-green-700"
+                                                                    }`}
+                                                            >
+                                                                {user.role === "ADMIN"
+                                                                    ? "مدیر"
+                                                                    : user.role === "TEACHER"
+                                                                        ? "معلم"
+                                                                        : "دانش آموز"}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-5 py-3.5 text-sm">{toJalali(user.createdAt)}</td>
+                                                        <td className="px-5 py-3.5 text-sm">
+                                                            <select
+                                                                value={user.role}
+                                                                onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                                                                className="rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)]"
+                                                            >
+                                                                <option value="STUDENT">دانش آموز</option>
+                                                                <option value="TEACHER">معلم</option>
+                                                                <option value="ADMIN">مدیر</option>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </section>
+
+                    <aside className="space-y-6">
+                        <MiniCalendar
+                            sessions={sessions}
+                            onMonthChange={handleMonthChange}
+                            className="h-fit rounded-3xl"
+                        />
+
+                        <Card className="rounded-3xl">
+                            <CardHeader className="p-5 pb-3">
+                                <CardTitle className="flex items-center gap-2 text-lg">
+                                    <Clock className="h-5 w-5" />
+                                    پیگیری سریع
+                                </CardTitle>
+                                <CardDescription>چند مسیر پرکاربرد برای مدیریت روزانه</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-3 p-5 pt-0">
+                                <Link href="/dashboard/admin/students" className="flex items-center justify-between rounded-2xl bg-[var(--muted)] px-4 py-3 text-sm transition-colors hover:bg-[var(--muted)]/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)] focus-visible:ring-offset-2">
+                                    <span>بررسی دانش آموزان و ثبت نام ها</span>
+                                    <span className="font-semibold text-[var(--primary-600)]">مشاهده</span>
+                                </Link>
+                                <Link href="/dashboard/admin/teachers" className="flex items-center justify-between rounded-2xl bg-[var(--muted)] px-4 py-3 text-sm transition-colors hover:bg-[var(--muted)]/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)] focus-visible:ring-offset-2">
+                                    <span>تنظیم وضعیت اساتید و تخصص ها</span>
+                                    <span className="font-semibold text-[var(--primary-600)]">مشاهده</span>
+                                </Link>
+                                <Link href="/dashboard/admin/refunds" className="flex items-center justify-between rounded-2xl bg-[var(--muted)] px-4 py-3 text-sm transition-colors hover:bg-[var(--muted)]/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)] focus-visible:ring-offset-2">
+                                    <span>رسیدگی به درخواست های استرداد</span>
+                                    <span className="font-semibold text-[var(--primary-600)]">مشاهده</span>
+                                </Link>
+                            </CardContent>
+                        </Card>
+                    </aside>
                 </div>
-
-                {/* Navigation Cards + Calendar */}
-                <div className="grid gap-6 lg:grid-cols-4 mb-8">
-                    <div className="lg:col-span-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <Link href="/dashboard/admin/students">
-                            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2 text-sm">
-                                        <Users className="h-4 w-4 text-[var(--primary-600)]" />
-                                        دانشآموزان
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold text-[var(--primary-600)]">
-                                        {users.filter(u => u.role === "STUDENT").length}
-                                    </div>
-                                    <p className="text-xs text-[var(--muted-foreground)]">
-                                        دانشآموز ثبتنام شده
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        </Link>
-
-                        <Link href="/dashboard/admin/teachers">
-                            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2 text-sm">
-                                        <GraduationCap className="h-4 w-4 text-[var(--secondary-600)]" />
-                                        معلمان
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold text-[var(--secondary-600)]">
-                                        {users.filter(u => u.role === "TEACHER").length}
-                                    </div>
-                                    <p className="text-xs text-[var(--muted-foreground)]">
-                                        معلم فعال
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        </Link>
-
-                        <Link href="/dashboard/admin/classes">
-                            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2 text-sm">
-                                        <GraduationCap className="h-4 w-4 text-green-600" />
-                                        کلاسها
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold text-green-600">
-                                        {classCount}
-                                    </div>
-                                    <p className="text-xs text-[var(--muted-foreground)]">
-                                        کلاس فعال
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        </Link>
-
-                        <Link href="/dashboard/admin/refunds">
-                            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2 text-sm">
-                                        <RefreshCw className="h-4 w-4 text-amber-600" />
-                                        استردادها
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-xs text-[var(--muted-foreground)]">مشاهده و بررسی</p>
-                                </CardContent>
-                            </Card>
-                        </Link>
-                    </div>
-
-                    {/* Mini Calendar */}
-                    <MiniCalendar
-                        sessions={sessions}
-                        onMonthChange={handleMonthChange}
-                        className="h-fit"
-                    />
-                </div>
-
-                {/* All Users Table */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Users className="h-5 w-5" />
-                            همه کاربران ({users.length})
-                        </CardTitle>
-                        <CardDescription>
-                            تمامی کاربران ثبتنام شده در سیستم
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {loading ? (
-                            <div className="text-center py-8">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary-600)] mx-auto"></div>
-                            </div>
-                        ) : users.length === 0 ? (
-                            <p className="text-center text-[var(--muted-foreground)] py-8">
-                                هیچ کاربری یافت نشد
-                            </p>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead>
-                                        <tr className="border-b border-[var(--border)]">
-                                            <th className="text-right p-3 text-sm font-semibold">نام</th>
-                                            <th className="text-right p-3 text-sm font-semibold">شماره تلفن</th>
-                                            <th className="text-right p-3 text-sm font-semibold">نقش</th>
-                                            <th className="text-right p-3 text-sm font-semibold">تاریخ ثبتنام</th>
-                                            <th className="text-right p-3 text-sm font-semibold">عملیات</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {users.map((user) => (
-                                            <tr key={user.id} className="border-b border-[var(--border)] hover:bg-[var(--muted)]">
-                                                <td className="p-3">
-                                                    <Link href={`/dashboard/admin/users/${user.id}`} className="text-sm hover:text-[var(--primary-600)]">
-                                                        {user.name}
-                                                    </Link>
-                                                </td>
-                                                <td className="p-3 text-sm font-mono">{user.phone}</td>
-                                                <td className="p-3 text-sm">
-                                                    <span
-                                                        className={`inline-block px-2 py-1 rounded text-xs font-medium ${user.role === "ADMIN"
-                                                            ? "bg-red-100 text-red-700"
-                                                            : user.role === "TEACHER"
-                                                                ? "bg-blue-100 text-blue-700"
-                                                                : "bg-green-100 text-green-700"
-                                                            }`}
-                                                    >
-                                                        {user.role === "ADMIN"
-                                                            ? "مدیر"
-                                                            : user.role === "TEACHER"
-                                                                ? "معلم"
-                                                                : "دانشآموز"}
-                                                    </span>
-                                                </td>
-                                                <td className="p-3 text-sm">
-                                                    {new Date(user.createdAt).toLocaleDateString("fa-IR")}
-                                                </td>
-                                                <td className="p-3 text-sm">
-                                                    <select
-                                                        value={user.role}
-                                                        onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                                                        className="text-sm rounded border border-[var(--border)] px-2 py-1"
-                                                    >
-                                                        <option value="STUDENT">دانشآموز</option>
-                                                        <option value="TEACHER">معلم</option>
-                                                        <option value="ADMIN">مدیر</option>
-                                                    </select>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
             </main>
         </div>
     );
