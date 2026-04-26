@@ -185,7 +185,7 @@ export default function MiniCalendar({
                 <div className="border-t border-[var(--border)] p-3">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-medium text-[var(--muted-foreground)]">
-                            {getPersianDayName(selectedDate)} {toJalali(selectedDate)}
+                            {getPersianDayName(selectedDate.toDate())} {toJalali(selectedDate.toDate())}
                         </span>
                         <span className="text-xs text-[var(--muted-foreground)]">
                             {selectedDaySessions.length} جلسه
