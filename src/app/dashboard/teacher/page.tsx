@@ -1,13 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { BookOpen, Users, FileText, GraduationCap, PlusCircle, Clock } from "lucide-react";
 import Link from "next/link";
 import DashboardHeader from "@/components/layout/DashboardHeader";
+import MiniCalendar from "@/components/ui/MiniCalendar";
 
+interface Session {
+    id: string;
+    title: string;
+    date: string;
+    type: "SCHEDULED" | "COMPENSATORY" | "PRIVATE";
+    class?: {
+        id: string;
+        name: string;
+        sessionDuration: number;
+    };
+}
 
 interface User {
     id: string;
@@ -22,9 +34,11 @@ export default function TeacherDashboard() {
     const { data: session } = useSession();
     const [users, setUsers] = useState<User[]>([]);
     const [usersLoading, setUsersLoading] = useState(false);
+    const [sessions, setSessions] = useState<Session[]>([]);
 
     useEffect(() => {
         fetchUsers();
+        fetchSessions();
     }, []);
 
     const fetchUsers = async () => {
@@ -42,13 +56,31 @@ export default function TeacherDashboard() {
         }
     };
 
+    const fetchSessions = async (startDate?: Date, endDate?: Date) => {
+        try {
+            const params = new URLSearchParams();
+            if (startDate && endDate) {
+                params.set("startDate", startDate.toISOString());
+                params.set("endDate", endDate.toISOString());
+            }
+            const response = await fetch(`/api/sessions?${params.toString()}`);
+            const data = await response.json();
+            if (response.ok) {
+                setSessions(data.sessions || []);
+            }
+        } catch (error) {
+            console.error("Error fetching sessions:", error);
+        }
+    };
 
-    // ... inside component
+    const handleMonthChange = (startDate: Date, endDate: Date) => {
+        fetchSessions(startDate, endDate);
+    };
+
     return (
         <div className="min-h-screen bg-[var(--muted)]">
             <DashboardHeader title="پنل معلم" />
 
-            {/* Main Content */}
             <main className="container mx-auto px-4 py-8">
                 <div className="mb-8 flex items-center justify-between">
                     <div>
@@ -56,7 +88,7 @@ export default function TeacherDashboard() {
                             داشبورد معلم
                         </h1>
                         <p className="text-[var(--muted-foreground)]">
-                            مدیریت کلاس‌ها و دانش‌آموزان
+                            مدیریت کلاسها و دانشآموزان
                         </p>
                     </div>
                     <div className="flex gap-3">
@@ -66,81 +98,79 @@ export default function TeacherDashboard() {
                                 ایجاد بلاگ
                             </Button>
                         </Link>
-                        <Button variant="outline">
-                            <PlusCircle className="h-4 w-4 ml-2" />
-                            ایجاد کلاس
-                        </Button>
+                        <Link href="/dashboard/teacher/classes/create">
+                            <Button variant="outline">
+                                <PlusCircle className="h-4 w-4 ml-2" />
+                                ایجاد کلاس
+                            </Button>
+                        </Link>
                     </div>
                 </div>
 
-                {/* Quick Stats */}
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-                    <Link href="/dashboard/teacher/classes">
-                        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                {/* Quick Stats + Calendar */}
+                <div className="grid gap-6 lg:grid-cols-4 mb-8">
+                    <div className="lg:col-span-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <Link href="/dashboard/teacher/classes">
+                            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">کلاسهای من</CardTitle>
+                                    <BookOpen className="h-4 w-4 text-[var(--muted-foreground)]" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">-</div>
+                                    <p className="text-xs text-[var(--muted-foreground)]">
+                                        کلیک کنید برای مشاهده
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        </Link>
+
+                        <Link href="/dashboard/teacher/availability">
+                            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">زمان آزاد</CardTitle>
+                                    <Clock className="h-4 w-4 text-[var(--muted-foreground)]" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">-</div>
+                                    <p className="text-xs text-[var(--muted-foreground)]">مدیریت زمان آزاد</p>
+                                </CardContent>
+                            </Card>
+                        </Link>
+
+                        <Link href="/dashboard/teacher/specializations">
+                            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">تخصصهای من</CardTitle>
+                                    <GraduationCap className="h-4 w-4 text-[var(--muted-foreground)]" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">-</div>
+                                    <p className="text-xs text-[var(--muted-foreground)]">مدیریت دروس و قیمتها</p>
+                                </CardContent>
+                            </Card>
+                        </Link>
+
+                        <Card className="h-full">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">کلاس‌های من</CardTitle>
-                                <BookOpen className="h-4 w-4 text-[var(--muted-foreground)]" />
+                                <CardTitle className="text-sm font-medium">دانشآموزان</CardTitle>
+                                <Users className="h-4 w-4 text-[var(--muted-foreground)]" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">-</div>
+                                <div className="text-2xl font-bold">{users.filter(u => u.role === 'STUDENT').length}</div>
                                 <p className="text-xs text-[var(--muted-foreground)]">
-                                    کلیک کنید برای مشاهده
+                                    دانشآموز ثبتنام شده
                                 </p>
                             </CardContent>
                         </Card>
-                    </Link>
+                    </div>
 
-                    <Link href="/dashboard/teacher/availability">
-                        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">زمان آزاد</CardTitle>
-                                <Clock className="h-4 w-4 text-[var(--muted-foreground)]" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">-</div>
-                                <p className="text-xs text-[var(--muted-foreground)]">مدیریت زمان آزاد</p>
-                            </CardContent>
-                        </Card>
-                    </Link>
-
-                    <Link href="/dashboard/teacher/specializations">
-                        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">تخصص‌های من</CardTitle>
-                                <GraduationCap className="h-4 w-4 text-[var(--muted-foreground)]" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">-</div>
-                                <p className="text-xs text-[var(--muted-foreground)]">مدیریت دروس و قیمت‌ها</p>
-                            </CardContent>
-                        </Card>
-                    </Link>
-
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">دانش‌آموزان</CardTitle>
-                            <Users className="h-4 w-4 text-[var(--muted-foreground)]" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{users.filter(u => u.role === 'STUDENT').length}</div>
-                            <p className="text-xs text-[var(--muted-foreground)]">
-                                دانش‌آموز ثبت‌نام شده
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">بلاگ‌ها</CardTitle>
-                            <FileText className="h-4 w-4 text-[var(--muted-foreground)]" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">0</div>
-                            <p className="text-xs text-[var(--muted-foreground)]">
-                                بلاگ منتشر شده
-                            </p>
-                        </CardContent>
-                    </Card>
+                    {/* Mini Calendar */}
+                    <MiniCalendar
+                        sessions={sessions}
+                        onMonthChange={handleMonthChange}
+                        className="h-fit"
+                    />
                 </div>
 
                 {/* Users List */}
@@ -151,7 +181,7 @@ export default function TeacherDashboard() {
                             لیست کاربران ({users.length})
                         </CardTitle>
                         <CardDescription>
-                            تمامی کاربران ثبت‌نام شده در سیستم
+                            تمامی کاربران ثبتنام شده در سیستم
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -191,7 +221,7 @@ export default function TeacherDashboard() {
                                                             ? "مدیر"
                                                             : user.role === "TEACHER"
                                                                 ? "معلم"
-                                                                : "دانش‌آموز"}
+                                                                : "دانشآموز"}
                                                     </span>
                                                 </td>
                                             </tr>
@@ -206,19 +236,21 @@ export default function TeacherDashboard() {
                 {/* Classes Section */}
                 <Card className="mb-6">
                     <CardHeader>
-                        <CardTitle>کلاس‌های من</CardTitle>
+                        <CardTitle>کلاسهای من</CardTitle>
                         <CardDescription>
-                            لیست کلاس‌هایی که تدریس می‌کنید
+                            لیست کلاسهایی که تدریس میکنید
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="text-center py-12 text-[var(--muted-foreground)]">
                             <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                            <p>هنوز کلاسی ایجاد نکرده‌اید</p>
-                            <Button variant="outline" className="mt-4">
-                                <PlusCircle className="h-4 w-4 ml-2" />
-                                ایجاد اولین کلاس
-                            </Button>
+                            <p>هنوز کلاسی ایجاد نکردهاید</p>
+                            <Link href="/dashboard/teacher/classes/create">
+                                <Button variant="outline" className="mt-4">
+                                    <PlusCircle className="h-4 w-4 ml-2" />
+                                    ایجاد اولین کلاس
+                                </Button>
+                            </Link>
                         </div>
                     </CardContent>
                 </Card>
@@ -226,15 +258,15 @@ export default function TeacherDashboard() {
                 {/* Blogs Section */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>بلاگ‌های من</CardTitle>
+                        <CardTitle>بلاگهای من</CardTitle>
                         <CardDescription>
-                            بلاگ‌هایی که نوشته‌اید
+                            بلاگهایی که نوشتهاید
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="text-center py-12 text-[var(--muted-foreground)]">
                             <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                            <p>هنوز بلاگی ننوشته‌اید</p>
+                            <p>هنوز بلاگی ننوشتهاید</p>
                             <Link href="/dashboard/teacher/create-blog">
                                 <Button variant="outline" className="mt-4">
                                     <PlusCircle className="h-4 w-4 ml-2" />
