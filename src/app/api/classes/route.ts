@@ -99,6 +99,8 @@ export async function GET(request: NextRequest) {
         const formattedClasses = uniqueClasses.map((cls) => {
             const now = new Date();
             const allSessions = cls.sessions;
+            const upcomingSessions = allSessions.filter((s) => new Date(s.date) >= now);
+            const nextSession = upcomingSessions[0] || null;
             const latestSession = allSessions[0] || null;
             const isCompleted = allSessions.length > 0 && allSessions.every((s) => new Date(s.date) < now);
 
@@ -113,6 +115,7 @@ export async function GET(request: NextRequest) {
                 minSessionsToPay: cls.minSessionsToPay,
                 teachers: cls.teachers.map((t) => t.teacher),
                 studentCount: cls.students.length,
+                nextSession,
                 latestSession,
                 allSessions,
                 isCompleted,

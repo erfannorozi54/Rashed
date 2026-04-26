@@ -59,8 +59,17 @@ export default function StudentDashboard() {
                 return item.sortDate >= now && item.sortDate <= oneWeekFromNow;
             }).length;
 
+            // Count only classes that have sessions and are not finished (have at least one future session)
+            const activeClassesCount = (classesData.classes || []).filter((cls: any) => {
+                // Class must have sessions
+                if (!cls.allSessions || cls.allSessions.length === 0) return false;
+                // Class is not finished if it has at least one future session
+                const now = new Date();
+                return cls.allSessions.some((s: any) => new Date(s.date) >= now);
+            }).length;
+
             setStats({
-                activeClasses: classesData.classes?.length || 0,
+                activeClasses: activeClassesCount,
                 pendingAssignments: assignmentsData.assignments?.length || 0,
                 weeklySessions: weeklyCount,
             });
@@ -155,18 +164,6 @@ export default function StudentDashboard() {
 
                 {/* Navigation Cards */}
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-                    <Link href="/dashboard/student/teachers">
-                        <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">اساتید</CardTitle>
-                                <GraduationCap className="h-4 w-4 text-[var(--muted-foreground)]" />
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-xs text-[var(--muted-foreground)]">مشاهده برنامه هفتگی اساتید</p>
-                            </CardContent>
-                        </Card>
-                    </Link>
-
                     <Link href="/dashboard/student/classes">
                         <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

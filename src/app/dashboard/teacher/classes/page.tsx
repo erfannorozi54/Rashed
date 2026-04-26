@@ -32,6 +32,7 @@ interface Class {
     studentCount: number;
     sessionDuration: number;
     sessionPrice: number;
+    nextSession: Session | null;
     latestSession: Session | null;
     createdAt: string;
 }
@@ -102,10 +103,10 @@ export default function TeacherClassesPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">
-                        کلاس‌های من
+                        کلاسهای من
                     </h2>
                     <p className="text-[var(--muted-foreground)]">
-                        تمام کلاس‌هایی که تدریس می‌کنید
+                        تمام کلاسهایی که تدریس میکنید
                     </p>
                 </div>
                 <Link href="/dashboard/teacher/classes/create">
@@ -134,7 +135,7 @@ export default function TeacherClassesPage() {
                     {/* Group / semi-private classes */}
                     {groupClasses.length > 0 && (
                         <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-[var(--foreground)]">کلاس‌های گروهی</h3>
+                            <h3 className="text-lg font-semibold text-[var(--foreground)]">کلاسهای گروهی</h3>
                             <div className="grid gap-6 md:grid-cols-2">
                                 {groupClasses.map((cls) => {
                                     const typeConfig = CLASS_TYPE_CONFIG[cls.classType];
@@ -158,9 +159,17 @@ export default function TeacherClassesPage() {
                                             <CardContent className="space-y-4">
                                                 <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
                                                     <Users className="h-4 w-4" />
-                                                    <span>{cls.studentCount} دانش‌آموز</span>
+                                                    <span>{cls.studentCount} دانشآموز</span>
                                                 </div>
-                                                {cls.latestSession && (
+                                                {cls.nextSession ? (
+                                                    <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                                                        <Calendar className="h-4 w-4" />
+                                                        <span>
+                                                            جلسه بعدی:{" "}
+                                                            {toJalali(cls.nextSession.date)} ({getPersianDayName(cls.nextSession.date)})
+                                                        </span>
+                                                    </div>
+                                                ) : cls.latestSession ? (
                                                     <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
                                                         <Calendar className="h-4 w-4" />
                                                         <span>
@@ -168,7 +177,7 @@ export default function TeacherClassesPage() {
                                                             {toJalali(cls.latestSession.date)} ({getPersianDayName(cls.latestSession.date)})
                                                         </span>
                                                     </div>
-                                                )}
+                                                ) : null}
                                                 <Link href={`/dashboard/teacher/classes/${cls.id}`} className="block">
                                                     <Button className="w-full">
                                                         <FileText className="h-4 w-4 ml-2" />
@@ -189,10 +198,12 @@ export default function TeacherClassesPage() {
                             <h3 className="text-lg font-semibold text-[var(--foreground)]">جلسات خصوصی</h3>
                             <div className="grid gap-6 md:grid-cols-2">
                                 {privateClasses.map((cls) => {
-                                    const times = cls.latestSession
+                                    const times = cls.nextSession
+                                        ? getSessionTimes(cls.nextSession.date, cls.sessionDuration ?? 90)
+                                        : cls.latestSession
                                         ? getSessionTimes(cls.latestSession.date, cls.sessionDuration ?? 90)
                                         : null;
-                                    const sessionDate = cls.latestSession ? new Date(cls.latestSession.date) : null;
+                                    const sessionDate = cls.nextSession ? new Date(cls.nextSession.date) : cls.latestSession ? new Date(cls.latestSession.date) : null;
                                     return (
                                         <Card key={cls.id} className="hover:shadow-lg transition-shadow border-purple-100">
                                             <CardHeader>
@@ -213,7 +224,7 @@ export default function TeacherClassesPage() {
                                             <CardContent className="space-y-3">
                                                 <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
                                                     <Users className="h-4 w-4" />
-                                                    <span>{cls.studentCount} دانش‌آموز</span>
+                                                    <span>{cls.studentCount} دانشآموز</span>
                                                 </div>
                                                 {sessionDate && times && (
                                                     <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">

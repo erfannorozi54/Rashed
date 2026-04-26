@@ -5,12 +5,19 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { GraduationCap, Users, Plus, Globe, Key, Lock, Trash2, Pencil, CheckCircle } from "lucide-react";
+import { GraduationCap, Users, Plus, Globe, Key, Lock, Trash2, Pencil, CheckCircle, Calendar } from "lucide-react";
 import Link from "next/link";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 import { cn } from "@/lib/utils";
+import { toJalali, getPersianDayName } from "@/lib/jalali-utils";
 
 type ClassType = "PUBLIC" | "SEMI_PRIVATE" | "PRIVATE";
+
+interface Session {
+    id: string;
+    title: string;
+    date: string;
+}
 
 interface ClassData {
     id: string;
@@ -23,6 +30,7 @@ interface ClassData {
     teachers: { id: string; name: string }[];
     studentCount: number;
     isCompleted: boolean;
+    nextSession: Session | null;
     createdAt: string;
 }
 
@@ -136,14 +144,23 @@ export default function ClassesPage() {
                             <div className="flex items-center gap-2 text-sm">
                                 <Users className="h-4 w-4 text-[var(--muted-foreground)]" />
                                 <span className="text-[var(--muted-foreground)]">
-                                    {cls.studentCount} دانش‌آموز
+                                    {cls.studentCount} دانشآموز
                                     {cls.maxCapacity && ` / ${cls.maxCapacity} ظرفیت`}
                                 </span>
                             </div>
                             <div className="pt-2 border-t border-[var(--border)]">
-                                <span className="text-xs text-[var(--muted-foreground)]">
-                                    ایجاد شده: {new Date(cls.createdAt).toLocaleDateString("fa-IR")}
-                                </span>
+                                {cls.nextSession ? (
+                                    <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
+                                        <Calendar className="h-3.5 w-3.5" />
+                                        <span>
+                                            جلسه بعدی: {toJalali(cls.nextSession.date)} ({getPersianDayName(cls.nextSession.date)})
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <span className="text-xs text-[var(--muted-foreground)]">
+                                        بدون جلسه آینده
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </CardContent>
@@ -170,17 +187,17 @@ export default function ClassesPage() {
 
     return (
         <div className="min-h-screen bg-[var(--muted)]">
-            <DashboardHeader title="کلاس‌ها" />
+            <DashboardHeader title="کلاسها" />
 
             <main className="container mx-auto px-4 py-8">
                 <div className="space-y-8">
                     <div className="flex items-center justify-between flex-wrap gap-3">
                         <div>
                             <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
-                                کلاس‌ها
+                                کلاسها
                             </h1>
                             <p className="text-[var(--muted-foreground)]">
-                                مشاهده و مدیریت کلاس‌های آموزشی
+                                مشاهده و مدیریت کلاسهای آموزشی
                             </p>
                         </div>
                         <div className="flex items-center gap-3">
@@ -190,7 +207,7 @@ export default function ClassesPage() {
                                     onClick={() => setShowCompleted(!showCompleted)}
                                 >
                                     <CheckCircle className="h-4 w-4 ml-2" />
-                                    کلاس‌های خاتمه یافته ({completedClasses.length})
+                                    کلاسهای خاتمه یافته ({completedClasses.length})
                                 </Button>
                             )}
                             <Link href="/dashboard/admin/classes/create">
@@ -219,7 +236,7 @@ export default function ClassesPage() {
                             {/* Active Classes */}
                             {activeClasses.length > 0 && (
                                 <div className="space-y-4">
-                                    <h3 className="text-lg font-semibold text-[var(--foreground)]">کلاس‌های فعال</h3>
+                                    <h3 className="text-lg font-semibold text-[var(--foreground)]">کلاسهای فعال</h3>
                                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                                         {activeClasses.map((cls) => renderClassCard(cls))}
                                     </div>
@@ -229,7 +246,7 @@ export default function ClassesPage() {
                             {/* Completed Classes */}
                             {showCompleted && completedClasses.length > 0 && (
                                 <div className="space-y-4">
-                                    <h3 className="text-lg font-semibold text-[var(--foreground)]">کلاس‌های خاتمه یافته</h3>
+                                    <h3 className="text-lg font-semibold text-[var(--foreground)]">کلاسهای خاتمه یافته</h3>
                                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                                         {completedClasses.map((cls) => renderClassCard(cls))}
                                     </div>
