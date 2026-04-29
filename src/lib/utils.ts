@@ -32,3 +32,17 @@ export function validatePersianName(name: string): { valid: boolean; message?: s
     
     return { valid: true };
 }
+
+/**
+ * Compute payment amount based on session price and minimum sessions to pay
+ */
+export function computePaymentAmount(
+    sessionPrice: number,
+    minSessionsToPay: number | null,
+    totalSessions: number
+): number {
+    if (sessionPrice === 0) return 0;
+    const min = minSessionsToPay ?? totalSessions;
+    if (min === 0) return 0;
+    return sessionPrice * min;
+}

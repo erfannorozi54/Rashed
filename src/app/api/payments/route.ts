@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
-import { computePaymentAmount } from "@/lib/enrollment-utils";
+import { computePaymentAmount } from "@/lib/utils";
 
 // GET student's own payments
 export async function GET(request: NextRequest) {
