@@ -73,36 +73,36 @@ export default function DashboardHeader({ title, backHref }: DashboardHeaderProp
 
     return (
         <header className="bg-white/80 backdrop-blur-md border-b border-[var(--border)] sticky top-0 z-50 shadow-sm">
-            <div className="container mx-auto px-4 py-3">
-                <div className="flex items-center gap-4">
+            <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3">
+                <div className="flex items-center gap-2 sm:gap-4">
 
                     {/* ── Logo ───────────────────────── */}
                     <Link href="/" className="shrink-0 hover:opacity-80 transition-opacity">
-                        <Logo width={120} height={67} className="h-8 w-auto" />
+                        <Logo width={120} height={67} className="h-6 sm:h-8 w-auto" />
                     </Link>
 
                     {/* ── Breadcrumb / Title ────────── */}
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
                         {!isOnDashboard && effectiveBackHref && (
                             <>
                                 <Link 
                                     href={dashboardHref}
-                                    className="text-sm text-[var(--muted-foreground)] hover:text-[var(--primary-600)] transition-colors hidden sm:block"
+                                    className="text-xs sm:text-sm text-[var(--muted-foreground)] hover:text-[var(--primary-600)] transition-colors hidden md:block"
                                 >
                                     داشبورد
                                 </Link>
-                                <ChevronRight className="h-4 w-4 text-[var(--muted-foreground)] hidden sm:block" />
+                                <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 text-[var(--muted-foreground)] hidden md:block" />
                             </>
                         )}
                         {title && (
-                            <span className="text-sm font-medium text-[var(--foreground)] truncate">
+                            <span className="text-xs sm:text-sm font-medium text-[var(--foreground)] truncate">
                                 {title}
                             </span>
                         )}
                     </div>
 
                     {/* ── Nav actions ─────────────────── */}
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1 sm:gap-2 shrink-0">
 
                         {/* Back button - only show if not on dashboard */}
                         {!isOnDashboard && effectiveBackHref && (
@@ -110,10 +110,10 @@ export default function DashboardHeader({ title, backHref }: DashboardHeaderProp
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="flex items-center gap-1.5 hover:bg-[var(--muted)]"
+                                    className="flex items-center gap-1 sm:gap-1.5 hover:bg-[var(--muted)] px-2 sm:px-3"
                                 >
                                     <ArrowRight className="h-4 w-4" />
-                                    <span className="hidden sm:inline">بازگشت</span>
+                                    <span className="hidden sm:inline text-sm">بازگشت</span>
                                 </Button>
                             </Link>
                         )}
@@ -124,10 +124,10 @@ export default function DashboardHeader({ title, backHref }: DashboardHeaderProp
                                 <Button 
                                     variant="outline" 
                                     size="sm" 
-                                    className="flex items-center gap-1.5 border-[var(--primary-200)] text-[var(--primary-600)] hover:bg-[var(--primary-50)]"
+                                    className="flex items-center gap-1 sm:gap-1.5 border-[var(--primary-200)] text-[var(--primary-600)] hover:bg-[var(--primary-50)] px-2 sm:px-3"
                                 >
                                     <Home className="h-4 w-4" />
-                                    <span className="hidden md:inline">داشبورد</span>
+                                    <span className="hidden md:inline text-sm">داشبورد</span>
                                 </Button>
                             </Link>
                         )}
@@ -150,21 +150,21 @@ export default function DashboardHeader({ title, backHref }: DashboardHeaderProp
                         <div className="relative" ref={dropdownRef}>
                             <button
                                 onClick={() => setDropdownOpen((v) => !v)}
-                                className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-[var(--muted)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)]"
+                                className="flex items-center gap-1.5 sm:gap-2 rounded-lg px-1.5 sm:px-2 py-1.5 hover:bg-[var(--muted)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)]"
                             >
-                                <span className="h-9 w-9 rounded-full bg-gradient-to-br from-[var(--primary-600)] to-[var(--primary-700)] text-white flex items-center justify-center text-sm font-bold shrink-0 select-none shadow-md">
+                                <span className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-gradient-to-br from-[var(--primary-600)] to-[var(--primary-700)] text-white flex items-center justify-center text-xs sm:text-sm font-bold shrink-0 select-none shadow-md">
                                     {getInitials(session?.user?.name)}
                                 </span>
-                                <span className="text-sm font-medium hidden lg:inline-block max-w-[120px] truncate">
+                                <span className="text-xs sm:text-sm font-medium hidden lg:inline-block max-w-[100px] xl:max-w-[120px] truncate">
                                     {session?.user?.name}
                                 </span>
                                 <ChevronDown
-                                    className={`h-4 w-4 text-[var(--muted-foreground)] transition-transform hidden lg:block ${dropdownOpen ? "rotate-180" : ""}`}
+                                    className={`h-3 w-3 sm:h-4 sm:w-4 text-[var(--muted-foreground)] transition-transform hidden lg:block ${dropdownOpen ? "rotate-180" : ""}`}
                                 />
                             </button>
 
                             {dropdownOpen && (
-                                <div className="absolute left-0 mt-2 w-64 bg-white rounded-xl border border-[var(--border)] shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="absolute left-0 mt-2 w-56 sm:w-64 bg-white rounded-xl border border-[var(--border)] shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                                     {/* User info */}
                                     <div className="px-4 py-3 border-b border-[var(--border)]">
                                         <p className="font-semibold text-sm truncate">{session?.user?.name}</p>
