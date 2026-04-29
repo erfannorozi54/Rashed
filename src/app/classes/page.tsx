@@ -131,7 +131,7 @@ export default function PublicClassesPage() {
                 ) : (
                     <div className="grid gap-6 md:grid-cols-2">
                         {activeClasses.map((cls) => {
-                            const isFull = cls.maxCapacity && cls.studentCount >= cls.maxCapacity;
+                            const isFull = !!(cls.maxCapacity && cls.studentCount >= cls.maxCapacity);
                             return (
                                 <Card key={cls.id} className="hover:shadow-lg transition-shadow">
                                     <CardHeader className="pb-3">
