@@ -161,15 +161,26 @@ export default function HomePage() {
                     </Button>
                   </Link>
                 ) : (
-                  <Link href="/auth/register">
-                    <Button
-                      size="lg"
-                      className="text-base px-8 shadow-xl shadow-[var(--primary-600)]/30 hover:shadow-2xl hover:shadow-[var(--primary-600)]/40 transition-all duration-300"
-                    >
-                      شروع یادگیری
-                      <ArrowLeft className="h-5 w-5 mr-2" />
-                    </Button>
-                  </Link>
+                  <>
+                    <Link href="/auth/register">
+                      <Button
+                        size="lg"
+                        className="text-base px-8 shadow-xl shadow-[var(--primary-600)]/30 hover:shadow-2xl hover:shadow-[var(--primary-600)]/40 transition-all duration-300"
+                      >
+                        شروع یادگیری
+                        <ArrowLeft className="h-5 w-5 mr-2" />
+                      </Button>
+                    </Link>
+                    <Link href="/auth/login">
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="text-base px-8 border-2 bg-white/50 backdrop-blur-sm hover:bg-white/80"
+                      >
+                        ورود به حساب
+                      </Button>
+                    </Link>
+                  </>
                 )}
                 <Link href="/classes">
                   <Button
