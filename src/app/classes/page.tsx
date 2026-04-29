@@ -132,8 +132,20 @@ export default function PublicClassesPage() {
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {activeClasses.map((cls) => {
                             const isFull = !!(cls.maxCapacity && cls.studentCount >= cls.maxCapacity);
-                            const firstSession = cls.scheduleDetails?.times[0];
-                            const lastSession = cls.scheduleDetails?.times[cls.scheduleDetails.times.length - 1];
+                            const times = cls.scheduleDetails?.times || [];
+                            const startTime = times.length > 0 ? times[0] : '';
+                            const endTime = times.length > 0 ? times[times.length - 1] : '';
+                            
+                            // Convert to Persian digits
+                            const toPersianDigits = (str: string) => {
+                                const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                                return str.replace(/\d/g, (digit) => persianDigits[parseInt(digit)]);
+                            };
+                            
+                            const displayTime = times.length === 1 
+                                ? toPersianDigits(startTime)
+                                : `${toPersianDigits(startTime)} - ${toPersianDigits(endTime)}`;
+                            
                             return (
                                 <Card key={cls.id} className="hover:shadow-lg transition-shadow">
                                     <CardHeader className="pb-3">
@@ -157,7 +169,8 @@ export default function PublicClassesPage() {
                                             <CardDescription className="mt-2 line-clamp-2">{cls.description}</CardDescription>
                                         )}
                                     </CardHeader>
-                                    <CardContent className="space-y-4">
+                                    <CardContent className="space-y-4 flex flex-col h-full">
+                                        <div className="flex-1 space-y-4">
                                         {cls.scheduleDetails && (
                                             <div className="rounded-lg bg-[var(--muted)]/50 p-3 space-y-2">
                                                 <div className="flex items-center gap-2 text-sm">
@@ -166,7 +179,7 @@ export default function PublicClassesPage() {
                                                 </div>
                                                 <div className="flex items-center gap-2 text-sm">
                                                     <Clock className="h-4 w-4 text-[var(--primary-600)]" />
-                                                    <span>{firstSession} - {lastSession}</span>
+                                                    <span>{displayTime}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-sm">
                                                     <Timer className="h-4 w-4 text-[var(--primary-600)]" />
@@ -198,24 +211,27 @@ export default function PublicClassesPage() {
                                             </div>
                                         </div>
 
-                                        <div className="rounded-lg border-2 border-[var(--primary-200)] bg-[var(--primary-50)] p-3 text-center">
-                                            <div className="text-sm text-[var(--primary-700)] mb-1">هزینه هر جلسه</div>
-                                            <div className="text-2xl font-bold text-[var(--primary-700)]">
-                                                {formatPrice(cls.sessionPrice)}
-                                            </div>
                                         </div>
 
-                                        <Button
-                                            className="w-full"
-                                            onClick={() => handleEnroll(cls.id)}
-                                            disabled={enrollingId === cls.id || isFull}
-                                        >
-                                            {enrollingId === cls.id 
-                                                ? "در حال پردازش..." 
-                                                : isFull 
-                                                ? "ظرفیت تکمیل است" 
-                                                : "ثبت‌نام در کلاس"}
-                                        </Button>
+                                        <div className="flex items-center gap-3 pt-4 border-t border-[var(--border)]">
+                                            <div className="flex-1 text-center rounded-lg border-2 border-[var(--primary-200)] bg-[var(--primary-50)] py-2">
+                                                <div className="text-xs text-[var(--primary-700)]">هزینه هر جلسه</div>
+                                                <div className="text-lg font-bold text-[var(--primary-700)]">
+                                                    {formatPrice(cls.sessionPrice)}
+                                                </div>
+                                            </div>
+                                            <Button
+                                                className="flex-1"
+                                                onClick={() => handleEnroll(cls.id)}
+                                                disabled={enrollingId === cls.id || isFull}
+                                            >
+                                                {enrollingId === cls.id 
+                                                    ? "در حال پردازش..." 
+                                                    : isFull 
+                                                    ? "ظرفیت تکمیل است" 
+                                                    : "ثبت‌نام"}
+                                            </Button>
+                                        </div>
                                     </CardContent>
                                 </Card>
                             );
