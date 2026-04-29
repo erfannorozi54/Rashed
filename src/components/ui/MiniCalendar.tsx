@@ -194,7 +194,7 @@ export default function MiniCalendar({
 
                     <div className="max-h-48 overflow-y-auto">
                         {selectedDaySessions.length > 0 ? (
-                            <div className="relative space-y-2">
+                            <div className="relative space-y-3">
                                 {selectedDaySessions
                                     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                                     .map((session, index) => {
@@ -203,10 +203,13 @@ export default function MiniCalendar({
                                         const endTime = moment(session.date).add(duration, 'minutes');
                                         
                                         return (
-                                            <div key={session.id} className="flex gap-2">
-                                                <div className="flex flex-col items-center">
+                                            <div key={session.id} className="flex gap-3">
+                                                <div className="flex flex-col items-center w-16 shrink-0">
+                                                    <div className="text-[11px] font-mono font-semibold text-[var(--foreground)]">
+                                                        {startTime.format('HH:mm')}
+                                                    </div>
                                                     <div className={cn(
-                                                        "w-2 h-2 rounded-full shrink-0 mt-1.5",
+                                                        "w-2.5 h-2.5 rounded-full my-1",
                                                         session.type === "COMPENSATORY"
                                                             ? "bg-orange-500"
                                                             : session.type === "PRIVATE"
@@ -214,37 +217,37 @@ export default function MiniCalendar({
                                                             : "bg-blue-500"
                                                     )} />
                                                     {index < selectedDaySessions.length - 1 && (
-                                                        <div className="w-px h-full bg-[var(--border)] mt-1" />
+                                                        <div className="w-0.5 h-full bg-[var(--border)] my-1" />
                                                     )}
+                                                    <div className="text-[11px] font-mono text-[var(--muted-foreground)] mt-1">
+                                                        {endTime.format('HH:mm')}
+                                                    </div>
                                                 </div>
                                                 <div className="flex-1 pb-2">
-                                                    <div className="flex items-baseline gap-2 mb-0.5">
-                                                        <span className="text-xs font-mono font-medium">
-                                                            {startTime.format('HH:mm')}
+                                                    <p className="text-sm font-medium mb-1.5">
+                                                        {session.class?.name || session.title}
+                                                    </p>
+                                                    <div className="flex items-center gap-2">
+                                                        <span
+                                                            className={cn(
+                                                                "inline-block text-[10px] px-2 py-0.5 rounded-full",
+                                                                session.type === "COMPENSATORY"
+                                                                    ? "bg-orange-100 text-orange-700"
+                                                                    : session.type === "PRIVATE"
+                                                                    ? "bg-purple-100 text-purple-700"
+                                                                    : "bg-blue-100 text-blue-700"
+                                                            )}
+                                                        >
+                                                            {session.type === "COMPENSATORY"
+                                                                ? "جبرانی"
+                                                                : session.type === "PRIVATE"
+                                                                ? "خصوصی"
+                                                                : "عادی"}
                                                         </span>
                                                         <span className="text-[10px] text-[var(--muted-foreground)]">
                                                             {duration} دقیقه
                                                         </span>
                                                     </div>
-                                                    <p className="text-sm font-medium mb-1">
-                                                        {session.class?.name || session.title}
-                                                    </p>
-                                                    <span
-                                                        className={cn(
-                                                            "inline-block text-[10px] px-2 py-0.5 rounded-full",
-                                                            session.type === "COMPENSATORY"
-                                                                ? "bg-orange-100 text-orange-700"
-                                                                : session.type === "PRIVATE"
-                                                                ? "bg-purple-100 text-purple-700"
-                                                                : "bg-blue-100 text-blue-700"
-                                                        )}
-                                                    >
-                                                        {session.type === "COMPENSATORY"
-                                                            ? "جبرانی"
-                                                            : session.type === "PRIVATE"
-                                                            ? "خصوصی"
-                                                            : "عادی"}
-                                                    </span>
                                                 </div>
                                             </div>
                                         );

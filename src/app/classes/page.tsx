@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { GraduationCap, Users, Calendar, BookOpen, Clock, Timer } from "lucide-react";
+import { GraduationCap, Calendar, Clock, Timer } from "lucide-react";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 
 interface PublicClass {
@@ -14,6 +13,7 @@ interface PublicClass {
     name: string;
     description: string | null;
     sessionPrice: number;
+    sessionDuration: number;
     sessionCount: number;
     heldSessionsCount: number;
     remainingSessionsCount: number;
@@ -68,7 +68,7 @@ export default function PublicClassesPage() {
         }
 
         if (session?.user?.role !== "STUDENT") {
-            showToast("برای ثبت‌نام باید با حساب دانش‌آموز وارد شوید");
+            showToast("برای ثبتنام باید با حساب دانشآموز وارد شوید");
             return;
         }
 
@@ -83,26 +83,27 @@ export default function PublicClassesPage() {
 
             if (res.ok) {
                 if (data.enrolled) {
-                    showToast("ثبت‌نام با موفقیت انجام شد");
+                    showToast("ثبتنام با موفقیت انجام شد");
                     fetchClasses();
                 } else if (data.redirectUrl) {
                     router.push(data.redirectUrl);
                 }
             } else {
-                showToast(data.error || "خطا در ثبت‌نام");
+                showToast(data.error || "خطا در ثبتنام");
             }
         } catch (e) {
-            showToast("خطا در ثبت‌نام");
+            showToast("خطا در ثبتنام");
         } finally {
             setEnrollingId(null);
         }
     };
 
+    const activeClasses = classes.filter((cls) => cls.remainingSessionsCount > 0);
+
     return (
         <div className="min-h-screen bg-[var(--muted)]">
-            <DashboardHeader title="کلاس‌های عمومی" />
+            <DashboardHeader title="کلاسهای عمومی" />
 
-            {/* Toast */}
             {toast && (
                 <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-[var(--foreground)] text-white px-6 py-3 rounded-lg shadow-lg text-sm">
                     {toast}
@@ -111,9 +112,9 @@ export default function PublicClassesPage() {
 
             <main className="container mx-auto px-4 py-8 max-w-5xl">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">کلاس‌های عمومی</h1>
+                    <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">کلاسهای عمومی</h1>
                     <p className="text-[var(--muted-foreground)]">
-                        کلاس‌های موجود را مشاهده کرده و در آن‌ها ثبت‌نام کنید
+                        کلاسهای موجود را مشاهده کرده و در آنها ثبتنام کنید
                     </p>
                 </div>
 
@@ -121,81 +122,99 @@ export default function PublicClassesPage() {
                     <div className="flex items-center justify-center py-16">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary-600)]"></div>
                     </div>
-                ) : classes.length === 0 ? (
+                ) : activeClasses.length === 0 ? (
                     <Card>
                         <CardContent className="text-center py-16">
-                            <BookOpen className="h-16 w-16 mx-auto mb-4 opacity-30 text-[var(--muted-foreground)]" />
-                            <p className="text-[var(--muted-foreground)] text-lg">در حال حاضر کلاسی برای ثبت‌نام وجود ندارد</p>
+                            <p className="text-[var(--muted-foreground)] text-lg">در حال حاضر کلاسی برای ثبتنام وجود ندارد</p>
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {classes.map((cls) => (
-                            <Card key={cls.id} className="hover:shadow-lg transition-shadow">
-                                <CardHeader>
-                                    <CardTitle className="text-lg">{cls.name}</CardTitle>
-                                    {cls.description && (
-                                        <CardDescription className="line-clamp-2">{cls.description}</CardDescription>
-                                    )}
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    {cls.teachers.length > 0 && (
-                                        <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                                            <GraduationCap className="h-4 w-4 shrink-0" />
-                                            <span>{cls.teachers.map((t) => t.name).join("، ")}</span>
-                                        </div>
-                                    )}
-                                    
-                                    {/* Session Information */}
-                                    <div className="space-y-3 text-sm text-[var(--muted-foreground)]">
-                                        {/* Total Sessions */}
-                                        <div className="flex items-center gap-4">
-                                            <span className="flex items-center gap-1">
-                                                <Calendar className="h-4 w-4" />
-                                                {cls.sessionCount} جلسه
-                                            </span>
-                                            {cls.heldSessionsCount > 0 && (
-                                                <span className="text-[var(--muted-foreground)]">
-                                                    ({cls.heldSessionsCount} برگزار شده، {cls.remainingSessionsCount} باقی‌مانده)
+                    <div className="grid gap-6 md:grid-cols-2">
+                        {activeClasses.map((cls) => {
+                            const isFull = cls.maxCapacity && cls.studentCount >= cls.maxCapacity;
+                            return (
+                                <Card key={cls.id} className="hover:shadow-lg transition-shadow">
+                                    <CardHeader className="pb-3">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="flex-1">
+                                                <CardTitle className="text-xl mb-1">{cls.name}</CardTitle>
+                                                {cls.teachers.length > 0 && (
+                                                    <div className="flex items-center gap-1.5 text-sm text-[var(--muted-foreground)]">
+                                                        <GraduationCap className="h-4 w-4 shrink-0" />
+                                                        <span>{cls.teachers.map((t) => t.name).join("، ")}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {isFull && (
+                                                <span className="shrink-0 text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">
+                                                    تکمیل ظرفیت
                                                 </span>
                                             )}
                                         </div>
-                                        
-                                        {/* Days and Times */}
+                                        {cls.description && (
+                                            <CardDescription className="mt-2 line-clamp-2">{cls.description}</CardDescription>
+                                        )}
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
                                         {cls.scheduleDetails && (
-                                            <div className="space-y-2">
-                                                <div className="flex items-center gap-1">
-                                                    <Clock className="h-4 w-4" />
+                                            <div className="rounded-lg bg-[var(--muted)]/50 p-3 space-y-2">
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <Calendar className="h-4 w-4 text-[var(--primary-600)]" />
                                                     <span className="font-medium">{cls.scheduleDetails.days.join(" و ")}</span>
                                                 </div>
-                                                <div className="flex items-center gap-1">
-                                                    <Timer className="h-4 w-4" />
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <Clock className="h-4 w-4 text-[var(--primary-600)]" />
                                                     <span>ساعت {cls.scheduleDetails.times.join(" و ")}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <Timer className="h-4 w-4 text-[var(--primary-600)]" />
+                                                    <span>مدت هر جلسه: {cls.sessionDuration} دقیقه</span>
                                                 </div>
                                             </div>
                                         )}
-                                    </div>
 
-                                    <div className="flex items-center gap-1 text-sm text-[var(--muted-foreground)]">
-                                        <Users className="h-4 w-4" />
-                                        <span>{cls.studentCount} دانش‌آموز</span>
-                                        {cls.maxCapacity && <span> / {cls.maxCapacity}</span>}
-                                    </div>
-                                    <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]">
-                                        <span className="font-bold text-[var(--primary-600)] text-lg">
-                                            {formatPrice(cls.sessionPrice)}
-                                        </span>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="rounded-lg bg-blue-50 p-3">
+                                                <div className="text-xs text-blue-600 mb-1">تعداد جلسات</div>
+                                                <div className="text-lg font-bold text-blue-700">{cls.sessionCount}</div>
+                                                {cls.heldSessionsCount > 0 && (
+                                                    <div className="text-xs text-blue-600 mt-1">
+                                                        {cls.remainingSessionsCount} جلسه باقیمانده
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="rounded-lg bg-emerald-50 p-3">
+                                                <div className="text-xs text-emerald-600 mb-1">ظرفیت</div>
+                                                <div className="text-lg font-bold text-emerald-700">
+                                                    {cls.studentCount}
+                                                    {cls.maxCapacity && ` / ${cls.maxCapacity}`}
+                                                </div>
+                                                <div className="text-xs text-emerald-600 mt-1">دانش‌آموز</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="rounded-lg border-2 border-[var(--primary-200)] bg-[var(--primary-50)] p-3 text-center">
+                                            <div className="text-sm text-[var(--primary-700)] mb-1">هزینه هر جلسه</div>
+                                            <div className="text-2xl font-bold text-[var(--primary-700)]">
+                                                {formatPrice(cls.sessionPrice)}
+                                            </div>
+                                        </div>
+
                                         <Button
-                                            size="sm"
+                                            className="w-full"
                                             onClick={() => handleEnroll(cls.id)}
-                                            disabled={enrollingId === cls.id}
+                                            disabled={enrollingId === cls.id || isFull}
                                         >
-                                            {enrollingId === cls.id ? "در حال پردازش..." : "ثبت‌نام"}
+                                            {enrollingId === cls.id 
+                                                ? "در حال پردازش..." 
+                                                : isFull 
+                                                ? "ظرفیت تکمیل است" 
+                                                : "ثبت‌نام در کلاس"}
                                         </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
                     </div>
                 )}
             </main>
