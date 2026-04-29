@@ -129,9 +129,11 @@ export default function PublicClassesPage() {
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="grid gap-6 md:grid-cols-2">
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {activeClasses.map((cls) => {
                             const isFull = !!(cls.maxCapacity && cls.studentCount >= cls.maxCapacity);
+                            const firstSession = cls.scheduleDetails?.times[0];
+                            const lastSession = cls.scheduleDetails?.times[cls.scheduleDetails.times.length - 1];
                             return (
                                 <Card key={cls.id} className="hover:shadow-lg transition-shadow">
                                     <CardHeader className="pb-3">
@@ -164,32 +166,35 @@ export default function PublicClassesPage() {
                                                 </div>
                                                 <div className="flex items-center gap-2 text-sm">
                                                     <Clock className="h-4 w-4 text-[var(--primary-600)]" />
-                                                    <span>ساعت {cls.scheduleDetails.times.join(" و ")}</span>
+                                                    <span>{firstSession} - {lastSession}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-sm">
                                                     <Timer className="h-4 w-4 text-[var(--primary-600)]" />
-                                                    <span>مدت هر جلسه: {cls.sessionDuration} دقیقه</span>
+                                                    <span>{cls.sessionDuration} دقیقه</span>
                                                 </div>
                                             </div>
                                         )}
 
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="rounded-lg bg-blue-50 p-3">
-                                                <div className="text-xs text-blue-600 mb-1">تعداد جلسات</div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <div className="rounded-lg bg-blue-50 p-2 text-center">
+                                                <div className="text-xs text-blue-600 mb-1">کل جلسات</div>
                                                 <div className="text-lg font-bold text-blue-700">{cls.sessionCount}</div>
-                                                {cls.heldSessionsCount > 0 && (
-                                                    <div className="text-xs text-blue-600 mt-1">
-                                                        {cls.remainingSessionsCount} جلسه باقیمانده
-                                                    </div>
-                                                )}
                                             </div>
-                                            <div className="rounded-lg bg-emerald-50 p-3">
-                                                <div className="text-xs text-emerald-600 mb-1">ظرفیت</div>
-                                                <div className="text-lg font-bold text-emerald-700">
-                                                    {cls.studentCount}
-                                                    {cls.maxCapacity && ` / ${cls.maxCapacity}`}
-                                                </div>
-                                                <div className="text-xs text-emerald-600 mt-1">دانش‌آموز</div>
+                                            <div className="rounded-lg bg-emerald-50 p-2 text-center">
+                                                <div className="text-xs text-emerald-600 mb-1">باقیمانده</div>
+                                                <div className="text-lg font-bold text-emerald-700">{cls.remainingSessionsCount}</div>
+                                            </div>
+                                            <div className="rounded-lg bg-orange-50 p-2 text-center">
+                                                <div className="text-xs text-orange-600 mb-1">برگزار شده</div>
+                                                <div className="text-lg font-bold text-orange-700">{cls.heldSessionsCount}</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="rounded-lg bg-purple-50 p-3 text-center">
+                                            <div className="text-xs text-purple-600 mb-1">ظرفیت</div>
+                                            <div className="text-lg font-bold text-purple-700">
+                                                {cls.studentCount}
+                                                {cls.maxCapacity && ` / ${cls.maxCapacity}`}
                                             </div>
                                         </div>
 
