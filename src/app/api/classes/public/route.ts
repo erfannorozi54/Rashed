@@ -4,8 +4,20 @@ import { getPersianDayName, formatTime } from "@/lib/jalali-utils";
 
 export async function GET(request: NextRequest) {
     try {
+        const now = new Date();
+        
         const classes = await prisma.class.findMany({
-            where: { classType: "PUBLIC" },
+            where: { 
+                classType: "PUBLIC",
+                sessions: {
+                    some: {
+                        cancelled: false,
+                        date: {
+                            gte: now
+                        }
+                    }
+                }
+            },
             include: {
                 teachers: {
                     include: {
@@ -21,8 +33,6 @@ export async function GET(request: NextRequest) {
             },
             orderBy: { createdAt: "desc" },
         });
-
-        const now = new Date();
 
         const formatted = classes.map((cls) => {
             const heldSessions = cls.sessions.filter((s) => new Date(s.date) < now);

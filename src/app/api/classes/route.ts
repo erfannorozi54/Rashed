@@ -19,7 +19,8 @@ export async function GET(request: NextRequest) {
         let classes;
 
         if (userRole === "STUDENT") {
-            // Get only enrolled classes for students
+            // Get only enrolled classes for students that have future sessions
+            const now = new Date();
             classes = await prisma.class.findMany({
                 where: {
                     students: {
@@ -27,6 +28,14 @@ export async function GET(request: NextRequest) {
                             studentId: userId,
                         },
                     },
+                    sessions: {
+                        some: {
+                            cancelled: false,
+                            date: {
+                                gte: now
+                            }
+                        }
+                    }
                 },
                 include: {
                     teachers: {
