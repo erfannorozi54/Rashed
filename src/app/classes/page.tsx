@@ -169,8 +169,7 @@ export default function PublicClassesPage() {
                                             <CardDescription className="mt-2 line-clamp-2">{cls.description}</CardDescription>
                                         )}
                                     </CardHeader>
-                                    <CardContent className="space-y-4 flex flex-col h-full">
-                                        <div className="flex-1 space-y-4">
+                                    <CardContent className="space-y-4">
                                         {cls.scheduleDetails && (
                                             <div className="rounded-lg bg-[var(--muted)]/50 p-3 space-y-2">
                                                 <div className="flex items-center gap-2 text-sm">
@@ -211,27 +210,24 @@ export default function PublicClassesPage() {
                                             </div>
                                         </div>
 
+                                        <div className="rounded-lg border-2 border-[var(--primary-200)] bg-[var(--primary-50)] p-3 text-center">
+                                            <div className="text-sm text-[var(--primary-700)] mb-1">هزینه هر جلسه</div>
+                                            <div className="text-2xl font-bold text-[var(--primary-700)]">
+                                                {formatPrice(cls.sessionPrice)}
+                                            </div>
                                         </div>
 
-                                        <div className="flex items-center gap-3 pt-4 border-t border-[var(--border)]">
-                                            <div className="flex-1 text-center rounded-lg border-2 border-[var(--primary-200)] bg-[var(--primary-50)] py-2">
-                                                <div className="text-xs text-[var(--primary-700)]">هزینه هر جلسه</div>
-                                                <div className="text-lg font-bold text-[var(--primary-700)]">
-                                                    {formatPrice(cls.sessionPrice)}
-                                                </div>
-                                            </div>
-                                            <Button
-                                                className="flex-1"
-                                                onClick={() => handleEnroll(cls.id)}
-                                                disabled={enrollingId === cls.id || isFull}
-                                            >
-                                                {enrollingId === cls.id 
-                                                    ? "در حال پردازش..." 
-                                                    : isFull 
-                                                    ? "ظرفیت تکمیل است" 
-                                                    : "ثبت‌نام"}
-                                            </Button>
-                                        </div>
+                                        <Button
+                                            className="w-full"
+                                            onClick={() => handleEnroll(cls.id)}
+                                            disabled={enrollingId === cls.id || isFull}
+                                        >
+                                            {enrollingId === cls.id 
+                                                ? "در حال پردازش..." 
+                                                : isFull 
+                                                ? "ظرفیت تکمیل است" 
+                                                : "ثبت‌نام"}
+                                        </Button>
                                     </CardContent>
                                 </Card>
                             );
