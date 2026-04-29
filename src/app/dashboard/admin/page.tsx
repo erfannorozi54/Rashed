@@ -130,36 +130,36 @@ export default function AdminDashboard() {
             <main className="container mx-auto px-4 py-6 lg:py-8">
                 <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_320px]">
                     <section className="space-y-6">
-                        <Card className="rounded-3xl border-none bg-gradient-to-l from-[var(--primary-600)] via-[var(--primary-700)] to-[var(--secondary-700)] text-white shadow-lg">
-                            <CardContent className="flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-end lg:justify-between">
+                        <Card className="rounded-2xl sm:rounded-3xl border-none bg-gradient-to-l from-[var(--primary-600)] via-[var(--primary-700)] to-[var(--secondary-700)] text-white shadow-lg">
+                            <CardContent className="flex flex-col gap-5 p-4 sm:p-6 lg:flex-row lg:items-end lg:justify-between">
                                 <div className="space-y-3">
                                     <div className="space-y-2">
-                                        <p className="text-sm text-white/80">نمای کلی امروز</p>
-                                        <h1 className="text-2xl font-bold sm:text-3xl">داشبورد مدیریت</h1>
-                                        <p className="max-w-2xl text-sm leading-6 text-white/80">
+                                        <p className="text-xs sm:text-sm text-white/80">نمای کلی امروز</p>
+                                        <h1 className="text-xl sm:text-2xl font-bold lg:text-3xl">داشبورد مدیریت</h1>
+                                        <p className="max-w-2xl text-xs sm:text-sm leading-5 sm:leading-6 text-white/80">
                                             مدیریت کاربران، کلاس ها و وضعیت جلسات از یک نمای فشرده و سریع.
                                         </p>
                                     </div>
 
                                     <div className="flex flex-wrap gap-2 text-xs">
-                                        <span className="rounded-full bg-white/15 px-3 py-1.5">
+                                        <span className="rounded-full bg-white/15 px-2.5 sm:px-3 py-1 sm:py-1.5">
                                             {users.filter((user) => user.role === "STUDENT").length} دانش آموز
                                         </span>
-                                        <span className="rounded-full bg-white/15 px-3 py-1.5">
+                                        <span className="rounded-full bg-white/15 px-2.5 sm:px-3 py-1 sm:py-1.5">
                                             {users.filter((user) => user.role === "TEACHER").length} معلم
                                         </span>
-                                        <span className="rounded-full bg-white/15 px-3 py-1.5">{classCount} کلاس فعال</span>
+                                        <span className="rounded-full bg-white/15 px-2.5 sm:px-3 py-1 sm:py-1.5">{classCount} کلاس فعال</span>
                                     </div>
                                 </div>
 
-                                <div className="flex flex-wrap gap-3">
-                                    <Link href="/dashboard/admin/classes">
-                                        <Button className="bg-white text-[var(--primary-700)] hover:bg-white/90">
+                                <div className="flex flex-wrap gap-2 sm:gap-3">
+                                    <Link href="/dashboard/admin/classes" className="flex-1 sm:flex-none">
+                                        <Button className="w-full sm:w-auto bg-white text-[var(--primary-700)] hover:bg-white/90 text-sm">
                                             مدیریت کلاس ها
                                         </Button>
                                     </Link>
-                                    <Link href="/dashboard/admin/teachers">
-                                        <Button variant="outline" className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white">
+                                    <Link href="/dashboard/admin/teachers" className="flex-1 sm:flex-none">
+                                        <Button variant="outline" className="w-full sm:w-auto border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white text-sm">
                                             بررسی معلمان
                                         </Button>
                                     </Link>
@@ -201,13 +201,13 @@ export default function AdminDashboard() {
                             />
                         </div>
 
-                        <Card className="rounded-3xl">
-                            <CardHeader className="gap-2 p-5">
-                                <CardTitle className="flex items-center gap-2 text-lg">
-                                    <Users className="h-5 w-5" />
+                        <Card className="rounded-2xl sm:rounded-3xl">
+                            <CardHeader className="gap-2 p-4 sm:p-5">
+                                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                                    <Users className="h-4 w-4 sm:h-5 sm:w-5" />
                                     همه کاربران ({users.length})
                                 </CardTitle>
-                                <CardDescription>تمامی کاربران ثبت نام شده در سیستم</CardDescription>
+                                <CardDescription className="text-xs sm:text-sm">تمامی کاربران ثبت نام شده در سیستم</CardDescription>
                             </CardHeader>
                             <CardContent className="p-0">
                                 {loading ? (
@@ -215,31 +215,31 @@ export default function AdminDashboard() {
                                         <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-[var(--primary-600)]"></div>
                                     </div>
                                 ) : users.length === 0 ? (
-                                    <p className="py-8 text-center text-[var(--muted-foreground)]">هیچ کاربری یافت نشد</p>
+                                    <p className="py-8 text-center text-sm text-[var(--muted-foreground)]">هیچ کاربری یافت نشد</p>
                                 ) : (
                                     <div className="overflow-x-auto">
-                                        <table className="w-full min-w-[760px]">
+                                        <table className="w-full min-w-[640px]">
                                             <thead>
                                                 <tr className="border-y border-[var(--border)] bg-[var(--muted)]/60">
-                                                    <th className="px-5 py-3 text-right text-xs font-semibold text-[var(--muted-foreground)]">نام</th>
-                                                    <th className="px-5 py-3 text-right text-xs font-semibold text-[var(--muted-foreground)]">شماره تلفن</th>
-                                                    <th className="px-5 py-3 text-right text-xs font-semibold text-[var(--muted-foreground)]">نقش</th>
-                                                    <th className="px-5 py-3 text-right text-xs font-semibold text-[var(--muted-foreground)]">تاریخ ثبت نام</th>
-                                                    <th className="px-5 py-3 text-right text-xs font-semibold text-[var(--muted-foreground)]">عملیات</th>
+                                                    <th className="px-3 sm:px-5 py-2.5 sm:py-3 text-right text-xs font-semibold text-[var(--muted-foreground)]">نام</th>
+                                                    <th className="px-3 sm:px-5 py-2.5 sm:py-3 text-right text-xs font-semibold text-[var(--muted-foreground)] hidden sm:table-cell">شماره تلفن</th>
+                                                    <th className="px-3 sm:px-5 py-2.5 sm:py-3 text-right text-xs font-semibold text-[var(--muted-foreground)]">نقش</th>
+                                                    <th className="px-3 sm:px-5 py-2.5 sm:py-3 text-right text-xs font-semibold text-[var(--muted-foreground)] hidden md:table-cell">تاریخ ثبت نام</th>
+                                                    <th className="px-3 sm:px-5 py-2.5 sm:py-3 text-right text-xs font-semibold text-[var(--muted-foreground)]">عملیات</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {users.map((user) => (
                                                     <tr key={user.id} className="border-b border-[var(--border)] transition-colors hover:bg-[var(--muted)]/40">
-                                                        <td className="px-5 py-3.5">
-                                                            <Link href={`/dashboard/admin/users/${user.id}`} className="text-sm font-medium hover:text-[var(--primary-600)]">
+                                                        <td className="px-3 sm:px-5 py-3 sm:py-3.5">
+                                                            <Link href={`/dashboard/admin/users/${user.id}`} className="text-xs sm:text-sm font-medium hover:text-[var(--primary-600)]">
                                                                 {user.name}
                                                             </Link>
                                                         </td>
-                                                        <td className="px-5 py-3.5 text-sm font-mono">{user.phone}</td>
-                                                        <td className="px-5 py-3.5 text-sm">
+                                                        <td className="px-3 sm:px-5 py-3 sm:py-3.5 text-xs sm:text-sm font-mono hidden sm:table-cell">{user.phone}</td>
+                                                        <td className="px-3 sm:px-5 py-3 sm:py-3.5 text-xs sm:text-sm">
                                                             <span
-                                                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${user.role === "ADMIN"
+                                                                className={`inline-flex rounded-full px-2 sm:px-2.5 py-0.5 sm:py-1 text-xs font-medium ${user.role === "ADMIN"
                                                                     ? "bg-red-100 text-red-700"
                                                                     : user.role === "TEACHER"
                                                                         ? "bg-blue-100 text-blue-700"
@@ -253,12 +253,12 @@ export default function AdminDashboard() {
                                                                         : "دانش آموز"}
                                                             </span>
                                                         </td>
-                                                        <td className="px-5 py-3.5 text-sm">{toJalali(user.createdAt)}</td>
-                                                        <td className="px-5 py-3.5 text-sm">
+                                                        <td className="px-3 sm:px-5 py-3 sm:py-3.5 text-xs sm:text-sm hidden md:table-cell">{toJalali(user.createdAt)}</td>
+                                                        <td className="px-3 sm:px-5 py-3 sm:py-3.5 text-xs sm:text-sm">
                                                             <select
                                                                 value={user.role}
                                                                 onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                                                                className="rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)]"
+                                                                className="rounded-lg border border-[var(--border)] bg-white px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)]"
                                                             >
                                                                 <option value="STUDENT">دانش آموز</option>
                                                                 <option value="TEACHER">معلم</option>
@@ -279,27 +279,27 @@ export default function AdminDashboard() {
                         <MiniCalendar
                             sessions={sessions}
                             onMonthChange={handleMonthChange}
-                            className="h-fit rounded-3xl"
+                            className="h-fit rounded-2xl sm:rounded-3xl"
                         />
 
-                        <Card className="rounded-3xl">
-                            <CardHeader className="p-5 pb-3">
-                                <CardTitle className="flex items-center gap-2 text-lg">
-                                    <Clock className="h-5 w-5" />
+                        <Card className="rounded-2xl sm:rounded-3xl">
+                            <CardHeader className="p-4 sm:p-5 pb-3">
+                                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                                    <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
                                     پیگیری سریع
                                 </CardTitle>
-                                <CardDescription>چند مسیر پرکاربرد برای مدیریت روزانه</CardDescription>
+                                <CardDescription className="text-xs sm:text-sm">چند مسیر پرکاربرد برای مدیریت روزانه</CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-3 p-5 pt-0">
-                                <Link href="/dashboard/admin/students" className="flex items-center justify-between rounded-2xl bg-[var(--muted)] px-4 py-3 text-sm transition-colors hover:bg-[var(--muted)]/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)] focus-visible:ring-offset-2">
+                            <CardContent className="space-y-2 sm:space-y-3 p-4 sm:p-5 pt-0">
+                                <Link href="/dashboard/admin/students" className="flex items-center justify-between rounded-xl sm:rounded-2xl bg-[var(--muted)] px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm transition-colors hover:bg-[var(--muted)]/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)] focus-visible:ring-offset-2">
                                     <span>بررسی دانش آموزان و ثبت نام ها</span>
                                     <span className="font-semibold text-[var(--primary-600)]">مشاهده</span>
                                 </Link>
-                                <Link href="/dashboard/admin/teachers" className="flex items-center justify-between rounded-2xl bg-[var(--muted)] px-4 py-3 text-sm transition-colors hover:bg-[var(--muted)]/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)] focus-visible:ring-offset-2">
+                                <Link href="/dashboard/admin/teachers" className="flex items-center justify-between rounded-xl sm:rounded-2xl bg-[var(--muted)] px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm transition-colors hover:bg-[var(--muted)]/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)] focus-visible:ring-offset-2">
                                     <span>تنظیم وضعیت اساتید و تخصص ها</span>
                                     <span className="font-semibold text-[var(--primary-600)]">مشاهده</span>
                                 </Link>
-                                <Link href="/dashboard/admin/refunds" className="flex items-center justify-between rounded-2xl bg-[var(--muted)] px-4 py-3 text-sm transition-colors hover:bg-[var(--muted)]/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)] focus-visible:ring-offset-2">
+                                <Link href="/dashboard/admin/refunds" className="flex items-center justify-between rounded-xl sm:rounded-2xl bg-[var(--muted)] px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm transition-colors hover:bg-[var(--muted)]/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)] focus-visible:ring-offset-2">
                                     <span>رسیدگی به درخواست های استرداد</span>
                                     <span className="font-semibold text-[var(--primary-600)]">مشاهده</span>
                                 </Link>

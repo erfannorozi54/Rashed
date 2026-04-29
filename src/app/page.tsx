@@ -110,7 +110,7 @@ export default function HomePage() {
           <div className="container mx-auto px-4 lg:px-8">
             <div className="max-w-xl mr-auto lg:mr-0 lg:ml-auto text-center lg:text-right">
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-[var(--primary-200)] rounded-full px-4 py-2 mb-6">
+              <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-[var(--primary-200)] rounded-full px-3 sm:px-4 py-1.5 sm:py-2 mb-4 sm:mb-6">
                 <Sparkles className="h-4 w-4 text-[var(--primary-600)]" />
                 <span className="text-sm font-medium text-[var(--primary-700)]">
                   بهترین آموزشگاه ریاضی تبریز
@@ -118,7 +118,7 @@ export default function HomePage() {
               </div>
 
               {/* Heading */}
-              <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-[var(--foreground)] leading-tight mb-6">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-[var(--foreground)] leading-tight mb-4 sm:mb-6">
                 یادگیری ریاضی
                 <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-l from-[var(--primary-600)] via-[var(--primary-500)] to-[var(--secondary-500)]">
@@ -127,66 +127,66 @@ export default function HomePage() {
               </h1>
 
               {/* Description */}
-              <p className="text-lg md:text-xl text-[var(--muted-foreground)] leading-relaxed mb-8">
+              <p className="text-sm sm:text-base md:text-lg lg:text-xl text-[var(--muted-foreground)] leading-relaxed mb-6 sm:mb-8">
                 با روش‌های نوین آموزشی و اساتید مجرب، ریاضی را به شکلی متفاوت
                 تجربه کنید. کلاس‌های خصوصی، آنلاین و حضوری برای تمام مقاطع
               </p>
 
               {/* Features list */}
-              <div className="flex flex-wrap justify-center lg:justify-start gap-3 md:gap-4 text-sm mb-8">
-                <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                  <CheckCircle2 className="h-4 w-4 text-[var(--primary-600)]" />
+              <div className="flex flex-wrap justify-center lg:justify-start gap-2 sm:gap-3 md:gap-4 text-xs sm:text-sm mb-6 sm:mb-8">
+                <div className="flex items-center gap-1.5 sm:gap-2 bg-white/60 backdrop-blur-sm px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                  <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-[var(--primary-600)]" />
                   <span className="text-[var(--foreground)]">کلاس خصوصی</span>
                 </div>
-                <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                  <CheckCircle2 className="h-4 w-4 text-[var(--primary-600)]" />
+                <div className="flex items-center gap-1.5 sm:gap-2 bg-white/60 backdrop-blur-sm px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                  <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-[var(--primary-600)]" />
                   <span className="text-[var(--foreground)]">آموزش آنلاین</span>
                 </div>
-                <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                  <CheckCircle2 className="h-4 w-4 text-[var(--primary-600)]" />
+                <div className="flex items-center gap-1.5 sm:gap-2 bg-white/60 backdrop-blur-sm px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                  <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-[var(--primary-600)]" />
                   <span className="text-[var(--foreground)]">کلاس یوس</span>
                 </div>
               </div>
 
               {/* CTA Buttons */}
-              <div className="flex flex-wrap justify-center lg:justify-start gap-4 mb-10">
+              <div className="flex flex-col sm:flex-row flex-wrap justify-center lg:justify-start gap-3 sm:gap-4 mb-8 sm:mb-10">
                 {status === "authenticated" ? (
-                  <Link href="/dashboard">
+                  <Link href="/dashboard" className="w-full sm:w-auto">
                     <Button
                       size="lg"
-                      className="text-base px-8 shadow-xl shadow-[var(--primary-600)]/30 hover:shadow-2xl hover:shadow-[var(--primary-600)]/40 transition-all duration-300"
+                      className="w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 shadow-xl shadow-[var(--primary-600)]/30 hover:shadow-2xl hover:shadow-[var(--primary-600)]/40 transition-all duration-300"
                     >
                       رفتن به داشبورد
-                      <ArrowLeft className="h-5 w-5 mr-2" />
+                      <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     </Button>
                   </Link>
                 ) : (
                   <>
-                    <Link href="/auth/register">
+                    <Link href="/auth/register" className="w-full sm:w-auto">
                       <Button
                         size="lg"
-                        className="text-base px-8 shadow-xl shadow-[var(--primary-600)]/30 hover:shadow-2xl hover:shadow-[var(--primary-600)]/40 transition-all duration-300"
+                        className="w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 shadow-xl shadow-[var(--primary-600)]/30 hover:shadow-2xl hover:shadow-[var(--primary-600)]/40 transition-all duration-300"
                       >
                         شروع یادگیری
-                        <ArrowLeft className="h-5 w-5 mr-2" />
+                        <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                       </Button>
                     </Link>
-                    <Link href="/auth/login">
+                    <Link href="/auth/login" className="w-full sm:w-auto">
                       <Button
                         size="lg"
                         variant="outline"
-                        className="text-base px-8 border-2 bg-white/50 backdrop-blur-sm hover:bg-white/80"
+                        className="w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 border-2 bg-white/50 backdrop-blur-sm hover:bg-white/80"
                       >
                         ورود به حساب
                       </Button>
                     </Link>
                   </>
                 )}
-                <Link href="/classes">
+                <Link href="/classes" className="w-full sm:w-auto">
                   <Button
                     size="lg"
                     variant="outline"
-                    className="text-base px-8 border-2 bg-white/50 backdrop-blur-sm hover:bg-white/80"
+                    className="w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 border-2 bg-white/50 backdrop-blur-sm hover:bg-white/80"
                   >
                     مشاهده کلاسها
                   </Button>
@@ -194,25 +194,25 @@ export default function HomePage() {
               </div>
 
               {/* Stats */}
-              <div className="flex flex-wrap justify-center lg:justify-start gap-6 md:gap-8">
-                <div className="text-center lg:text-right bg-white/60 backdrop-blur-sm px-4 py-3 rounded-xl">
-                  <div className="text-2xl md:text-3xl font-bold text-[var(--primary-600)]">
+              <div className="flex flex-wrap justify-center lg:justify-start gap-4 sm:gap-6 md:gap-8">
+                <div className="text-center lg:text-right bg-white/60 backdrop-blur-sm px-3 sm:px-4 py-2 sm:py-3 rounded-xl">
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--primary-600)]">
                     +۵۰۰
                   </div>
                   <div className="text-xs md:text-sm text-[var(--muted-foreground)]">
                     دانش‌آموز موفق
                   </div>
                 </div>
-                <div className="text-center lg:text-right bg-white/60 backdrop-blur-sm px-4 py-3 rounded-xl">
-                  <div className="text-2xl md:text-3xl font-bold text-[var(--primary-600)]">
+                <div className="text-center lg:text-right bg-white/60 backdrop-blur-sm px-3 sm:px-4 py-2 sm:py-3 rounded-xl">
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--primary-600)]">
                     +۱۰
                   </div>
                   <div className="text-xs md:text-sm text-[var(--muted-foreground)]">
                     سال تجربه
                   </div>
                 </div>
-                <div className="text-center lg:text-right bg-white/60 backdrop-blur-sm px-4 py-3 rounded-xl">
-                  <div className="text-2xl md:text-3xl font-bold text-[var(--primary-600)]">
+                <div className="text-center lg:text-right bg-white/60 backdrop-blur-sm px-3 sm:px-4 py-2 sm:py-3 rounded-xl">
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--primary-600)]">
                     ۹۸٪
                   </div>
                   <div className="text-xs md:text-sm text-[var(--muted-foreground)]">
