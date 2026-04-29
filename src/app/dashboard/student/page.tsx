@@ -1,15 +1,15 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { BookOpen, Calendar, FileText, LogOut, GraduationCap, ChevronLeft, CreditCard, UserCheck, User } from "lucide-react";
+import { BookOpen, Calendar, FileText, CreditCard, UserCheck, Clock } from "lucide-react";
 import Link from "next/link";
 import DashboardHeader from "@/components/layout/DashboardHeader";
+import DashboardQuickCard from "@/components/ui/DashboardQuickCard";
 import { SessionTypeBadge } from "@/components/SessionTypeBadge";
 import { formatTime } from "@/lib/jalali-utils";
-
 
 export default function StudentDashboard() {
     const { data: session } = useSession();
@@ -30,7 +30,6 @@ export default function StudentDashboard() {
 
     const fetchDashboardData = async () => {
         try {
-            // Fetch upcoming sessions and classes in parallel
             const [sessionsRes, classesRes, assignmentsRes] = await Promise.all([
                 fetch("/api/sessions?type=upcoming"),
                 fetch("/api/classes"),
@@ -59,11 +58,8 @@ export default function StudentDashboard() {
                 return item.sortDate >= now && item.sortDate <= oneWeekFromNow;
             }).length;
 
-            // Count only classes that have sessions and are not finished (have at least one future session)
             const activeClassesCount = (classesData.classes || []).filter((cls: any) => {
-                // Class must have sessions
                 if (!cls.allSessions || cls.allSessions.length === 0) return false;
-                // Class is not finished if it has at least one future session
                 const now = new Date();
                 return cls.allSessions.some((s: any) => new Date(s.date) >= now);
             }).length;
@@ -74,7 +70,6 @@ export default function StudentDashboard() {
                 weeklySessions: weeklyCount,
             });
 
-            // Fetch outstanding debt
             const paymentsRes = await fetch("/api/payments");
             if (paymentsRes.ok) {
                 const paymentsData = await paymentsRes.json();
@@ -93,218 +88,158 @@ export default function StudentDashboard() {
 
     return (
         <div className="min-h-screen bg-[var(--muted)]">
-            <DashboardHeader title="پنل دانش‌آموز" />
+            <DashboardHeader title="پنل دانشآموز" />
 
-            {/* Main Content */}
-            <main className="container mx-auto px-4 py-8">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
-                        داشبورد دانش‌آموز
-                    </h1>
-                    <p className="text-[var(--muted-foreground)]">
-                        به پنل کاربری خود خوش آمدید
-                    </p>
-                </div>
+            <main className="container mx-auto px-4 py-6 lg:py-8">
+                <div className="space-y-6">
+                    <Card className="rounded-3xl border-none bg-gradient-to-l from-emerald-600 via-emerald-700 to-blue-700 text-white shadow-lg">
+                        <CardContent className="flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-end lg:justify-between">
+                            <div className="space-y-3">
+                                <div className="space-y-2">
+                                    <p className="text-sm text-white/80">نمای کلی امروز</p>
+                                    <h1 className="text-2xl font-bold sm:text-3xl">داشبورد دانشآموز</h1>
+                                    <p className="max-w-2xl text-sm leading-6 text-white/80">
+                                        به پنل کاربری خود خوش آمدید. کلاسها، تکالیف و جلسات خود را مدیریت کنید.
+                                    </p>
+                                </div>
 
-                {/* Quick Stats */}
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">کلاس‌های من</CardTitle>
-                            <BookOpen className="h-4 w-4 text-[var(--muted-foreground)]" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{stats.activeClasses}</div>
-                            <p className="text-xs text-[var(--muted-foreground)]">
-                                کلاس فعال
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">تکالیف</CardTitle>
-                            <FileText className="h-4 w-4 text-[var(--muted-foreground)]" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{stats.pendingAssignments}</div>
-                            <p className="text-xs text-[var(--muted-foreground)]">
-                                تکلیف در انتظار
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">جلسات</CardTitle>
-                            <Calendar className="h-4 w-4 text-[var(--muted-foreground)]" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{stats.weeklySessions}</div>
-                            <p className="text-xs text-[var(--muted-foreground)]">
-                                جلسه در ۷ روز آینده
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    <Link href="/dashboard/student/account">
-                    <Card className={outstandingDebt > 0 ? "hover:shadow-lg transition-shadow cursor-pointer border-amber-200 bg-amber-50" : "hover:shadow-lg transition-shadow cursor-pointer"}>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">حساب من</CardTitle>
-                            <CreditCard className={`h-4 w-4 ${outstandingDebt > 0 ? "text-amber-600" : "text-[var(--muted-foreground)]"}`} />
-                        </CardHeader>
-                        <CardContent>
-                            <div className={`text-2xl font-bold ${outstandingDebt > 0 ? "text-amber-700" : ""}`}>
-                                {outstandingDebt > 0 ? outstandingDebt.toLocaleString("fa-IR") : "۰"}
+                                <div className="flex flex-wrap gap-2 text-xs">
+                                    <span className="rounded-full bg-white/15 px-3 py-1.5">
+                                        {stats.activeClasses} کلاس فعال
+                                    </span>
+                                    <span className="rounded-full bg-white/15 px-3 py-1.5">
+                                        {stats.weeklySessions} جلسه این هفته
+                                    </span>
+                                    {outstandingDebt > 0 && (
+                                        <span className="rounded-full bg-amber-500/30 px-3 py-1.5">
+                                            {outstandingDebt.toLocaleString("fa-IR")} تومان بدهی
+                                        </span>
+                                    )}
+                                </div>
                             </div>
-                            <p className="text-xs text-[var(--muted-foreground)]">تومان بدهی</p>
+
+                            <div className="flex flex-wrap gap-3">
+                                <Link href="/dashboard/student/classes">
+                                    <Button className="bg-white text-emerald-700 hover:bg-white/90">
+                                        کلاسهای من
+                                    </Button>
+                                </Link>
+                                <Link href="/dashboard/student/book-session">
+                                    <Button variant="outline" className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white">
+                                        رزرو جلسه خصوصی
+                                    </Button>
+                                </Link>
+                            </div>
                         </CardContent>
                     </Card>
-                    </Link>                </div>
 
-                {/* Navigation Cards */}
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-                    <Link href="/dashboard/student/classes">
-                        <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">کلاس‌های من</CardTitle>
-                                <BookOpen className="h-4 w-4 text-[var(--muted-foreground)]" />
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-xs text-[var(--muted-foreground)]">مشاهده کلاس‌ها و جلسات</p>
-                            </CardContent>
-                        </Card>
-                    </Link>
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                        <DashboardQuickCard
+                            href="/dashboard/student/classes"
+                            title="کلاسهای من"
+                            value={stats.activeClasses}
+                            description="کلاسهای فعال و جلسات آینده را مشاهده کنید."
+                            icon={BookOpen}
+                            accentClassName="text-emerald-600"
+                        />
+                        <DashboardQuickCard
+                            href="/dashboard/student/schedule"
+                            title="تقویم"
+                            value={stats.weeklySessions}
+                            description="جلسات هفته جاری و برنامه زمانبندی."
+                            icon={Calendar}
+                            accentClassName="text-blue-600"
+                        />
+                        <DashboardQuickCard
+                            title="تکالیف"
+                            value={stats.pendingAssignments}
+                            description="تکالیف در انتظار ارسال و بررسی."
+                            icon={FileText}
+                            accentClassName="text-purple-600"
+                        />
+                        <DashboardQuickCard
+                            href="/dashboard/student/account"
+                            title="حساب من"
+                            value={outstandingDebt > 0 ? `${outstandingDebt.toLocaleString("fa-IR")} تومان` : "بدون بدهی"}
+                            description="وضعیت مالی و پرداختهای شما."
+                            icon={CreditCard}
+                            accentClassName={outstandingDebt > 0 ? "text-amber-600" : "text-green-600"}
+                        />
+                    </div>
 
-                    <Link href="/dashboard/student/schedule">
-                        <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">تقویم</CardTitle>
-                                <Calendar className="h-4 w-4 text-[var(--muted-foreground)]" />
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-xs text-[var(--muted-foreground)]">مشاهده تقویم کامل جلسات</p>
-                            </CardContent>
-                        </Card>
-                    </Link>
-
-                    <Link href="/dashboard/student/book-session">
-                        <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">رزرو جلسه خصوصی</CardTitle>
-                                <UserCheck className="h-4 w-4 text-[var(--muted-foreground)]" />
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-xs text-[var(--muted-foreground)]">رزرو جلسه ۹۰ دقیقه‌ای با استاد</p>
-                            </CardContent>
-                        </Card>
-                    </Link>
-                </div>
-
-                {/* Upcoming Sessions Section */}
-                <div className="grid gap-6 md:grid-cols-2">
-                    <Card className="md:col-span-2">
-                        <CardHeader>
-                            <CardTitle>جلسات پیش‌رو</CardTitle>
-                            <CardDescription>
-                                برنامه کلاس‌های آینده شما
-                            </CardDescription>
+                    <Card className="rounded-3xl">
+                        <CardHeader className="gap-2 p-5">
+                            <CardTitle className="flex items-center gap-2 text-lg">
+                                <Calendar className="h-5 w-5" />
+                                جلسات پیشرو
+                            </CardTitle>
+                            <CardDescription>برنامه کلاسهای آینده شما</CardDescription>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="p-0">
                             {loading ? (
-                                <div className="text-center py-8">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary-600)] mx-auto"></div>
+                                <div className="py-8 text-center">
+                                    <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-emerald-600"></div>
                                 </div>
                             ) : upcomingItems.length === 0 ? (
-                                <div className="text-center py-8 text-[var(--muted-foreground)]">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h2 className="text-xl font-bold text-[var(--foreground)] flex items-center gap-2">
-                                            <Calendar className="h-5 w-5 text-[var(--primary-600)]" />
-                                            جلسات پیش‌رو
-                                        </h2>
-                                        <Link href="/dashboard/student/schedule">
-                                            <Button variant="ghost" size="sm" className="text-[var(--primary-600)]">
-                                                مشاهده تقویم کامل
-                                                <ChevronLeft className="h-4 w-4 mr-1" />
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                    <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                    <p>هیچ جلسه‌ای برای آینده برنامه‌ریزی نشده است</p>
-                                </div>
+                                <p className="py-8 text-center text-[var(--muted-foreground)]">
+                                    هیچ جلسهای برای آینده برنامهریزی نشده است
+                                </p>
                             ) : (
-                                <div className="space-y-4">
-                                    {upcomingItems.map((item: any) => {
-                                        if (item.kind === "private") {
-                                            const sessionDate = new Date(item.date);
-                                            const startTime = formatTime(sessionDate);
-                                            const endDate = new Date(sessionDate.getTime() + (item.class?.sessionDuration ?? 90) * 60_000);
-                                            const endTime = formatTime(endDate);
-                                            return (
-                                                <div
-                                                    key={item.id}
-                                                    className="flex items-center justify-between p-4 bg-white border border-purple-100 rounded-lg hover:shadow-md transition-shadow"
-                                                >
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="h-12 w-12 rounded-full bg-purple-50 text-purple-600 flex flex-col items-center justify-center border border-purple-100 shrink-0">
-                                                            <span className="text-xs font-bold">{new Date(item.date).toLocaleDateString('fa-IR', { month: 'short' })}</span>
-                                                            <span className="text-lg font-bold">{new Date(item.date).toLocaleDateString('fa-IR', { day: 'numeric' })}</span>
-                                                        </div>
-                                                        <div>
-                                                            <div className="flex items-center gap-2 flex-wrap">
-                                                                <h4 className="font-bold text-[var(--foreground)]">{item.class?.name ?? "کلاس خصوصی"}</h4>
-                                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
-                                                                    خصوصی
-                                                                </span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                                                                {item.title && <span>{item.title}</span>}
-                                                                <span className="mx-1">•</span>
-                                                                <Calendar className="h-3 w-3" />
-                                                                <span>{startTime} تا {endTime}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <Link href="/dashboard/student/classes">
-                                                        <Button variant="outline" size="sm">
-                                                            جزئیات
-                                                        </Button>
-                                                    </Link>
-                                                </div>
-                                            );
-                                        }
+                                <div className="space-y-0">
+                                    {upcomingItems.slice(0, 5).map((item: any, index: number) => {
+                                        const isPrivate = item.kind === "private";
+                                        const sessionDate = new Date(item.date);
+                                        const startTime = formatTime(sessionDate);
+                                        const endDate = new Date(sessionDate.getTime() + (item.class?.sessionDuration ?? 90) * 60_000);
+                                        const endTime = formatTime(endDate);
 
                                         return (
                                             <div
                                                 key={item.id}
-                                                className="flex items-center justify-between p-4 bg-white border border-[var(--border)] rounded-lg hover:shadow-md transition-shadow"
+                                                className={`flex items-center justify-between px-5 py-4 transition-colors hover:bg-[var(--muted)]/40 ${
+                                                    index !== upcomingItems.length - 1 ? "border-b border-[var(--border)]" : ""
+                                                }`}
                                             >
-                                                <div className="flex items-center gap-4">
-                                                    <div className="h-12 w-12 rounded-full bg-blue-50 text-blue-600 flex flex-col items-center justify-center border border-blue-100 shrink-0">
-                                                        <span className="text-xs font-bold">{new Date(item.date).toLocaleDateString('fa-IR', { month: 'short' })}</span>
-                                                        <span className="text-lg font-bold">{new Date(item.date).toLocaleDateString('fa-IR', { day: 'numeric' })}</span>
+                                                <div className="flex items-center gap-4 flex-1 min-w-0">
+                                                    <div className={`h-12 w-12 rounded-xl flex flex-col items-center justify-center shrink-0 ${
+                                                        isPrivate ? "bg-purple-50 text-purple-700" : "bg-blue-50 text-blue-700"
+                                                    }`}>
+                                                        <span className="text-xs font-bold">
+                                                            {sessionDate.toLocaleDateString('fa-IR', { month: 'short' })}
+                                                        </span>
+                                                        <span className="text-lg font-bold">
+                                                            {sessionDate.toLocaleDateString('fa-IR', { day: 'numeric' })}
+                                                        </span>
                                                     </div>
-                                                    <div>
-                                                        <div className="flex items-center gap-2">
-                                                            <h4 className="font-bold text-[var(--foreground)]">
-                                                                {item.title}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <h4 className="font-medium truncate">
+                                                                {isPrivate ? (item.class?.name ?? "کلاس خصوصی") : item.title}
                                                             </h4>
-                                                            <SessionTypeBadge type={item.type} />
+                                                            {isPrivate ? (
+                                                                <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                                                                    خصوصی
+                                                                </span>
+                                                            ) : (
+                                                                <SessionTypeBadge type={item.type} />
+                                                            )}
                                                         </div>
-                                                        <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                                                            <BookOpen className="h-3 w-3" />
-                                                            <span>{item.class.name}</span>
-                                                            <span className="mx-1">•</span>
-                                                            <Calendar className="h-3 w-3" />
-                                                            <span>
-                                                                {formatTime(item.date)}
-                                                            </span>
+                                                        <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
+                                                            {!isPrivate && (
+                                                                <>
+                                                                    <BookOpen className="h-3 w-3" />
+                                                                    <span className="truncate">{item.class.name}</span>
+                                                                    <span>•</span>
+                                                                </>
+                                                            )}
+                                                            <Clock className="h-3 w-3" />
+                                                            <span>{startTime} - {endTime}</span>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <Link href={`/dashboard/student/classes/${item.class.id}`}>
-                                                    <Button variant="outline" size="sm">
-                                                        مشاهده کلاس
+                                                <Link href={`/dashboard/student/classes/${item.class?.id || item.classId}`}>
+                                                    <Button variant="outline" size="sm" className="shrink-0">
+                                                        جزئیات
                                                     </Button>
                                                 </Link>
                                             </div>
@@ -312,6 +247,30 @@ export default function StudentDashboard() {
                                     })}
                                 </div>
                             )}
+                        </CardContent>
+                    </Card>
+
+                    <Card className="rounded-3xl">
+                        <CardHeader className="p-5 pb-3">
+                            <CardTitle className="flex items-center gap-2 text-lg">
+                                <Clock className="h-5 w-5" />
+                                دسترسی سریع
+                            </CardTitle>
+                            <CardDescription>مسیرهای پرکاربرد برای مدیریت روزانه</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3 p-5 pt-0">
+                            <Link href="/dashboard/student/schedule" className="flex items-center justify-between rounded-2xl bg-[var(--muted)] px-4 py-3 text-sm transition-colors hover:bg-[var(--muted)]/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
+                                <span>مشاهده تقویم کامل جلسات</span>
+                                <span className="font-semibold text-emerald-600">مشاهده</span>
+                            </Link>
+                            <Link href="/dashboard/student/book-session" className="flex items-center justify-between rounded-2xl bg-[var(--muted)] px-4 py-3 text-sm transition-colors hover:bg-[var(--muted)]/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
+                                <span>رزرو جلسه خصوصی با استاد</span>
+                                <span className="font-semibold text-emerald-600">مشاهده</span>
+                            </Link>
+                            <Link href="/dashboard/student/account" className="flex items-center justify-between rounded-2xl bg-[var(--muted)] px-4 py-3 text-sm transition-colors hover:bg-[var(--muted)]/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2">
+                                <span>مدیریت حساب و پرداختها</span>
+                                <span className="font-semibold text-emerald-600">مشاهده</span>
+                            </Link>
                         </CardContent>
                     </Card>
                 </div>
