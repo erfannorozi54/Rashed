@@ -147,7 +147,7 @@ export default function PublicClassesPage() {
                                 : `${toPersianDigits(startTime)} - ${toPersianDigits(endTime)}`;
                             
                             return (
-                                <Card key={cls.id} className="hover:shadow-lg transition-shadow">
+                                <Card key={cls.id} className="hover:shadow-lg transition-shadow flex flex-col">
                                     <CardHeader className="pb-3">
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="flex-1">
@@ -169,7 +169,8 @@ export default function PublicClassesPage() {
                                             <CardDescription className="mt-2 line-clamp-2">{cls.description}</CardDescription>
                                         )}
                                     </CardHeader>
-                                    <CardContent className="space-y-4">
+                                    <CardContent className="space-y-4 flex-1 flex flex-col">
+                                        <div className="flex-1 space-y-4">
                                         {cls.scheduleDetails && (
                                             <div className="rounded-lg bg-[var(--muted)]/50 p-3 space-y-2">
                                                 <div className="flex items-center gap-2 text-sm">
@@ -209,7 +210,9 @@ export default function PublicClassesPage() {
                                                 {cls.maxCapacity && ` / ${cls.maxCapacity}`}
                                             </div>
                                         </div>
+                                        </div>
 
+                                        <div className="space-y-3 mt-auto">
                                         <div className="rounded-lg border-2 border-[var(--primary-200)] bg-[var(--primary-50)] p-3 text-center">
                                             <div className="text-sm text-[var(--primary-700)] mb-1">هزینه هر جلسه</div>
                                             <div className="text-2xl font-bold text-[var(--primary-700)]">
@@ -228,6 +231,7 @@ export default function PublicClassesPage() {
                                                 ? "ظرفیت تکمیل است" 
                                                 : "ثبت‌نام"}
                                         </Button>
+                                        </div>
                                     </CardContent>
                                 </Card>
                             );
