@@ -12,7 +12,6 @@ import PersianDatePicker from "@/components/ui/PersianDatePicker";
 import SessionPlannerCalendar, { BusySlot } from "@/components/ui/SessionPlannerCalendar";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 import { Globe, Key, Lock, GraduationCap, Calendar, Trash2, Plus, Search, X } from "lucide-react";
-import Link from "next/link";
 import { toJalali } from "@/lib/jalali-utils";
 import moment from "moment-jalaali";
 import { cn } from "@/lib/utils";
@@ -304,14 +303,9 @@ export default function AdminCreateClassPage() {
             <DashboardHeader title="ایجاد کلاس جدید" />
 
             <main className="container mx-auto px-4 py-8 max-w-4xl">
-                <div className="flex items-center justify-between mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold text-[var(--foreground)] mb-1">ایجاد کلاس جدید</h1>
-                        <p className="text-[var(--muted-foreground)]">اطلاعات کلاس و برنامه جلسات را وارد کنید</p>
-                    </div>
-                    <Link href="/dashboard/admin/classes">
-                        <Button variant="outline">بازگشت</Button>
-                    </Link>
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-[var(--foreground)] mb-1">ایجاد کلاس جدید</h1>
+                    <p className="text-[var(--muted-foreground)]">اطلاعات کلاس و برنامه جلسات را وارد کنید</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-8">
@@ -762,9 +756,6 @@ export default function AdminCreateClassPage() {
 
                     {/* Submit */}
                     <div className="flex justify-end gap-4">
-                        <Link href="/dashboard/admin/classes">
-                            <Button type="button" variant="outline">انصراف</Button>
-                        </Link>
                         <Button type="submit" disabled={loading || !name.trim()}>
                             {loading ? "در حال ایجاد..." : "ایجاد کلاس"}
                         </Button>
