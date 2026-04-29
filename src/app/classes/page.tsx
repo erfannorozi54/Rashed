@@ -110,7 +110,7 @@ export default function PublicClassesPage() {
                 </div>
             )}
 
-            <main className="container mx-auto px-4 py-8 max-w-5xl">
+            <main className="container mx-auto px-4 py-8 max-w-7xl">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">کلاسهای عمومی</h1>
                     <p className="text-[var(--muted-foreground)]">
