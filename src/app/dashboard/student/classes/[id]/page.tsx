@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { BookOpen, Calendar, Download, Users, FileText, Clock, CheckCircle, XCircle, CreditCard, Upload, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { formatTime } from "@/lib/jalali-utils";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 
 interface Teacher {
@@ -267,7 +268,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
                   </div>
                   <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
                     <Clock className="h-4 w-4" />
-                    {new Date(session.date).toLocaleDateString("fa-IR")}
+                    {new Date(session.date).toLocaleDateString("fa-IR")} - ساعت {formatTime(session.date)}
                   </div>
                 </div>
               ))}
@@ -323,7 +324,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
                         <span className="text-[var(--muted-foreground)]">-</span>
                       )}
                       <span className="text-[var(--muted-foreground)]">
-                        {new Date(session.date).toLocaleDateString("fa-IR")}
+                        {new Date(session.date).toLocaleDateString("fa-IR")} - ساعت {formatTime(session.date)}
                       </span>
                     </div>
                   </div>
