@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { User, BookOpen, Calendar, TrendingUp, CheckCircle, XCircle, FileText, CreditCard } from "lucide-react";
@@ -69,8 +69,11 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
     const { id } = use(params);
     const { data: session } = useSession();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [userData, setUserData] = useState<UserData | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const backHref = searchParams.get("back") || undefined;
 
     useEffect(() => {
         if (session?.user?.role !== "ADMIN") {
@@ -114,7 +117,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
     return (
         <div className="min-h-screen bg-[var(--muted)]">
-            <DashboardHeader title="جزئیات کاربر" />
+            <DashboardHeader title="جزئیات کاربر" backHref={backHref} />
 
             <main className="container mx-auto px-4 py-8">
                 {/* User Info */}

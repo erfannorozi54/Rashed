@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { GraduationCap, Calendar, Clock, Timer } from "lucide-react";
-import DashboardHeader from "@/components/layout/DashboardHeader";
+import PublicHeader from "@/components/layout/PublicHeader";
 
 interface PublicClass {
     id: string;
@@ -102,7 +102,7 @@ export default function PublicClassesPage() {
 
     return (
         <div className="min-h-screen bg-[var(--muted)]">
-            <DashboardHeader title="کلاسهای عمومی" />
+            <PublicHeader title="کلاسهای عمومی" backHref="/" />
 
             {toast && (
                 <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-[var(--foreground)] text-white px-6 py-3 rounded-lg shadow-lg text-sm">

@@ -115,14 +115,14 @@ export default function TeachersPage() {
                                                 <td className="p-3 text-sm">
                                                     <div className="flex items-center gap-3">
                                                         <Link
-                                                            href={`/dashboard/admin/users/${teacher.id}`}
+                                                            href={`/dashboard/admin/users/${teacher.id}?back=/dashboard/admin/teachers`}
                                                             className="text-[var(--primary-600)] hover:underline flex items-center gap-1"
                                                         >
                                                             <TrendingUp className="h-4 w-4" />
                                                             جزئیات
                                                         </Link>
                                                         <Link
-                                                            href={`/dashboard/admin/teachers/${teacher.id}/availability`}
+                                                            href={`/dashboard/admin/teachers/${teacher.id}/availability?back=/dashboard/admin/teachers`}
                                                             className="text-[var(--secondary-600)] hover:underline flex items-center gap-1"
                                                         >
                                                             زمان آزاد

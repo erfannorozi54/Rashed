@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { Clock, CalendarDays } from "lucide-react";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 import AvailabilityGrid, {
@@ -14,6 +15,8 @@ import ExceptionsCard, { type Exception } from "@/components/ui/ExceptionsCard";
 
 export default function AdminTeacherAvailabilityPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const searchParams = useSearchParams();
+  const backHref = searchParams.get("back") || undefined;
   const [teacher, setTeacher] = useState<{ name: string } | null>(null);
   const [grid, setGrid] = useState<boolean[][]>(emptyGrid());
   const [exceptions, setExceptions] = useState<Exception[]>([]);
@@ -113,7 +116,7 @@ export default function AdminTeacherAvailabilityPage({ params }: { params: Promi
 
   return (
     <div className="min-h-screen bg-[var(--muted)]">
-      <DashboardHeader title={`مدیریت زمان آزاد${teacher ? ` — ${teacher.name}` : ""}`} />
+      <DashboardHeader title={`مدیریت زمان آزاد${teacher ? ` — ${teacher.name}` : ""}`} backHref={backHref} />
 
       <main className="container mx-auto px-4 py-6 space-y-5 max-w-5xl">
 
