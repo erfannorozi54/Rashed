@@ -170,8 +170,8 @@ export default function TeacherBookPage() {
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
             <DashboardHeader title={`رزرو جلسه با ${teacher.name}`} backHref="/dashboard/student/book-session" />
             
-            <main className="container mx-auto px-4 py-6 lg:py-8">
-                <div className="max-w-6xl mx-auto">
+            <main className="container mx-auto px-4 py-6 lg:py-8 flex justify-center">
+                <div className="w-full max-w-6xl">
                     {/* Progress indicator */}
                     <div className="mb-8">
                         <div className="flex items-center justify-center gap-2 sm:gap-4">
