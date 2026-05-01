@@ -112,7 +112,10 @@ export default function TeacherBookPage() {
 
     const handleBook = async () => {
         if (!selectedDate || !selectedSlot) return;
-        if (teacher?.specializations.length && !selectedSpec) return;
+        if (teacher?.specializations.length && !selectedSpec) {
+            setError("لطفاً موضوع درس را انتخاب کنید");
+            return;
+        }
         setBooking(true);
         setError(null);
         try {
@@ -247,7 +250,7 @@ export default function TeacherBookPage() {
                                     <CardHeader className="pb-4">
                                         <CardTitle className="text-lg flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-full bg-[var(--primary-600)] text-white text-sm flex items-center justify-center font-bold">۱</div>
-                                            <span>موضوع درس را انتخاب کنید</span>
+                                            <span>موضوع درس را انتخاب کنید *</span>
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-3">

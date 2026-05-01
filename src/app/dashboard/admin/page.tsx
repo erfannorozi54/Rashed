@@ -193,6 +193,16 @@ export default function AdminDashboard() {
                                 accentClassName="text-emerald-600"
                             />
                             <DashboardQuickCard
+                                href="/dashboard/admin/teacher-specializations"
+                                title="تخصص‌های تدریس"
+                                description="مدیریت تخصص‌ها و قیمت‌گذاری جلسات خصوصی اساتید"
+                                icon={GraduationCap}
+                                accentClassName="text-purple-600"
+                            />
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <DashboardQuickCard
                                 href="/dashboard/admin/refunds"
                                 title="استردادها"
                                 description="درخواست های بازگشت وجه و بررسی های مالی را پیگیری کنید."
@@ -297,6 +307,10 @@ export default function AdminDashboard() {
                                 </Link>
                                 <Link href="/dashboard/admin/teachers" className="flex items-center justify-between rounded-xl sm:rounded-2xl bg-[var(--muted)] px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm transition-colors hover:bg-[var(--muted)]/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)] focus-visible:ring-offset-2">
                                     <span>تنظیم وضعیت اساتید و تخصص ها</span>
+                                    <span className="font-semibold text-[var(--primary-600)]">مشاهده</span>
+                                </Link>
+                                <Link href="/dashboard/admin/teacher-specializations" className="flex items-center justify-between rounded-xl sm:rounded-2xl bg-[var(--muted)] px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm transition-colors hover:bg-[var(--muted)]/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)] focus-visible:ring-offset-2">
+                                    <span>مدیریت تخصص‌ها و قیمت‌گذاری</span>
                                     <span className="font-semibold text-[var(--primary-600)]">مشاهده</span>
                                 </Link>
                                 <Link href="/dashboard/admin/refunds" className="flex items-center justify-between rounded-xl sm:rounded-2xl bg-[var(--muted)] px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm transition-colors hover:bg-[var(--muted)]/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)] focus-visible:ring-offset-2">
