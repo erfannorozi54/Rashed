@@ -159,7 +159,7 @@ export default function TeacherClassesPage() {
                                             <CardContent className="space-y-4">
                                                 <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
                                                     <Users className="h-4 w-4" />
-                                                    <span>{cls.studentCount} دانشآموز</span>
+                                                    <span>{cls.studentCount} دانش‌آموز</span>
                                                 </div>
                                                 {cls.nextSession ? (
                                                     <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
@@ -224,7 +224,7 @@ export default function TeacherClassesPage() {
                                             <CardContent className="space-y-3">
                                                 <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
                                                     <Users className="h-4 w-4" />
-                                                    <span>{cls.studentCount} دانشآموز</span>
+                                                    <span>{cls.studentCount} دانش‌آموز</span>
                                                 </div>
                                                 {sessionDate && times && (
                                                     <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">

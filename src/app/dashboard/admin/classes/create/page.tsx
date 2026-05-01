@@ -210,11 +210,13 @@ export default function AdminCreateClassPage() {
             iterations++;
         }
 
-        const newSessions: PlannedSession[] = dates.map((d, i) => ({
-            id: Math.random().toString(36).slice(2),
-            title: `جلسه ${i + 1}`,
-            date: d,
-        }));
+        const newSessions: PlannedSession[] = dates
+            .sort((a, b) => a.getTime() - b.getTime())
+            .map((d, i) => ({
+                id: Math.random().toString(36).slice(2),
+                title: `جلسه ${i + 1}`,
+                date: d,
+            }));
         setPlannedSessions(newSessions);
     };
 
@@ -230,21 +232,36 @@ export default function AdminCreateClassPage() {
         });
 
         if (exists >= 0) {
-            setPlannedSessions((prev) => prev.filter((_, i) => i !== exists));
+            const updated = plannedSessions.filter((_, i) => i !== exists);
+            // Renumber remaining sessions
+            const renumbered = updated
+                .sort((a, b) => a.date.getTime() - b.date.getTime())
+                .map((s, i) => ({ ...s, title: `جلسه ${i + 1}` }));
+            setPlannedSessions(renumbered);
         } else {
-            setPlannedSessions((prev) => [
-                ...prev,
+            const updated = [
+                ...plannedSessions,
                 {
                     id: Math.random().toString(36).slice(2),
-                    title: `جلسه ${prev.length + 1}`,
+                    title: "",
                     date: new Date(date),
                 },
-            ]);
+            ];
+            // Sort and renumber all sessions
+            const renumbered = updated
+                .sort((a, b) => a.date.getTime() - b.date.getTime())
+                .map((s, i) => ({ ...s, title: `جلسه ${i + 1}` }));
+            setPlannedSessions(renumbered);
         }
     };
 
     const handleRemoveSession = (id: string) => {
-        setPlannedSessions((prev) => prev.filter((s) => s.id !== id));
+        const updated = plannedSessions.filter((s) => s.id !== id);
+        // Renumber remaining sessions
+        const renumbered = updated
+            .sort((a, b) => a.date.getTime() - b.date.getTime())
+            .map((s, i) => ({ ...s, title: `جلسه ${i + 1}` }));
+        setPlannedSessions(renumbered);
     };
 
     const handleUpdateSessionTitle = (id: string, title: string) => {

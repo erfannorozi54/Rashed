@@ -88,7 +88,7 @@ export default function StudentDashboard() {
 
     return (
         <div className="min-h-screen bg-[var(--muted)]">
-            <DashboardHeader title="پنل دانشآموز" />
+            <DashboardHeader title="پنل دانش‌آموز" />
 
             <main className="container mx-auto px-4 py-6 lg:py-8">
                 <div className="space-y-6">
@@ -97,7 +97,7 @@ export default function StudentDashboard() {
                             <div className="space-y-3">
                                 <div className="space-y-2">
                                     <p className="text-sm text-white/80">نمای کلی امروز</p>
-                                    <h1 className="text-2xl font-bold sm:text-3xl">داشبورد دانشآموز</h1>
+                                    <h1 className="text-2xl font-bold sm:text-3xl">داشبورد دانش‌آموز</h1>
                                     <p className="max-w-2xl text-sm leading-6 text-white/80">
                                         به پنل کاربری خود خوش آمدید. کلاسها، تکالیف و جلسات خود را مدیریت کنید.
                                     </p>

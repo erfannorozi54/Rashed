@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
         if (!session || session.user.role !== "STUDENT") {
-            return NextResponse.json({ error: "فقط دانشآموزان" }, { status: 403 });
+            return NextResponse.json({ error: "فقط دانش‌آموزان" }, { status: 403 });
         }
 
         const { paymentId, amount, reason } = await request.json();

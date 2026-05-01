@@ -68,7 +68,7 @@ export default function PublicClassesPage() {
         }
 
         if (session?.user?.role !== "STUDENT") {
-            showToast("برای ثبتنام باید با حساب دانشآموز وارد شوید");
+            showToast("برای ثبت نام باید با حساب دانش‌آموز وارد شوید");
             return;
         }
 
@@ -83,16 +83,16 @@ export default function PublicClassesPage() {
 
             if (res.ok) {
                 if (data.enrolled) {
-                    showToast("ثبتنام با موفقیت انجام شد");
+                    showToast("ثبت نام با موفقیت انجام شد");
                     fetchClasses();
                 } else if (data.redirectUrl) {
                     router.push(data.redirectUrl);
                 }
             } else {
-                showToast(data.error || "خطا در ثبتنام");
+                showToast(data.error || "خطا در ثبت نام");
             }
         } catch (e) {
-            showToast("خطا در ثبتنام");
+            showToast("خطا در ثبت نام");
         } finally {
             setEnrollingId(null);
         }
@@ -114,7 +114,7 @@ export default function PublicClassesPage() {
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">کلاسهای عمومی</h1>
                     <p className="text-[var(--muted-foreground)]">
-                        کلاسهای موجود را مشاهده کرده و در آنها ثبتنام کنید
+                        کلاسهای موجود را مشاهده کرده و در آنها ثبت نام کنید
                     </p>
                 </div>
 
@@ -125,7 +125,7 @@ export default function PublicClassesPage() {
                 ) : activeClasses.length === 0 ? (
                     <Card>
                         <CardContent className="text-center py-16">
-                            <p className="text-[var(--muted-foreground)] text-lg">در حال حاضر کلاسی برای ثبتنام وجود ندارد</p>
+                            <p className="text-[var(--muted-foreground)] text-lg">در حال حاضر کلاسی برای ثبت نام وجود ندارد</p>
                         </CardContent>
                     </Card>
                 ) : (

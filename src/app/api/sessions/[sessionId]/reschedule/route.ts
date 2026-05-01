@@ -12,7 +12,7 @@ export async function POST(
     try {
         const session = await getServerSession(authOptions);
         if (!session || session.user.role !== "STUDENT") {
-            return NextResponse.json({ error: "فقط دانشآموزان" }, { status: 403 });
+            return NextResponse.json({ error: "فقط دانش‌آموزان" }, { status: 403 });
         }
 
         const { sessionId } = await params;
@@ -37,7 +37,7 @@ export async function POST(
 
         // Must be enrolled
         const isEnrolled = targetSession.class.students.some((s) => s.studentId === session.user.id);
-        if (!isEnrolled) return NextResponse.json({ error: "در این کلاس ثبتنام نیستید" }, { status: 403 });
+        if (!isEnrolled) return NextResponse.json({ error: "در این کلاس ثبت نام نیستید" }, { status: 403 });
 
         // Only 1-participant classes
         if (targetSession.class.students.length !== 1) {

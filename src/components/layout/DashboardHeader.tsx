@@ -22,7 +22,7 @@ const ROLE_DASHBOARD: Record<string, string> = {
 const ROLE_LABEL: Record<string, string> = {
     ADMIN: "مدیر",
     TEACHER: "معلم",
-    STUDENT: "دانشآموز",
+    STUDENT: "دانش‌آموز",
 };
 
 const ROLE_GRADIENT: Record<string, string> = {

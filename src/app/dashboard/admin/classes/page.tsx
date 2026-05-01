@@ -9,7 +9,7 @@ import { GraduationCap, Users, Plus, Globe, Key, Lock, Trash2, Pencil, CheckCirc
 import Link from "next/link";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 import { cn } from "@/lib/utils";
-import { toJalali, getPersianDayName } from "@/lib/jalali-utils";
+import { toJalali, getPersianDayName, formatTime } from "@/lib/jalali-utils";
 
 type ClassType = "PUBLIC" | "SEMI_PRIVATE" | "PRIVATE";
 
@@ -144,7 +144,7 @@ export default function ClassesPage() {
                             <div className="flex items-center gap-2 text-sm">
                                 <Users className="h-4 w-4 text-[var(--muted-foreground)]" />
                                 <span className="text-[var(--muted-foreground)]">
-                                    {cls.studentCount} دانشآموز
+                                    {cls.studentCount} دانش‌آموز
                                     {cls.maxCapacity && ` / ${cls.maxCapacity} ظرفیت`}
                                 </span>
                             </div>
@@ -153,7 +153,7 @@ export default function ClassesPage() {
                                     <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
                                         <Calendar className="h-3.5 w-3.5" />
                                         <span>
-                                            جلسه بعدی: {toJalali(cls.nextSession.date)} ({getPersianDayName(cls.nextSession.date)})
+                                            جلسه بعدی: {toJalali(cls.nextSession.date)} ({getPersianDayName(cls.nextSession.date)}) ساعت {formatTime(cls.nextSession.date)}
                                         </span>
                                     </div>
                                 ) : (

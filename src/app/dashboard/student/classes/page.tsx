@@ -41,7 +41,7 @@ interface Class {
 }
 
 const ENROLLMENT_BADGE = {
-  ENROLLED: { label: "ثبتنام شده", className: "bg-green-100 text-green-700" },
+  ENROLLED: { label: "ثبت نام شده", className: "bg-green-100 text-green-700" },
   PENDING_PAYMENT: { label: "در انتظار پرداخت", className: "bg-amber-100 text-amber-700" },
   CANCELLED: { label: "لغو شده", className: "bg-gray-100 text-gray-600" },
 };
@@ -86,7 +86,7 @@ function ClassCard({ cls }: { cls: Class }) {
           </div>
           <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
             <Users className="h-4 w-4" />
-            <span>{cls.studentCount} دانشآموز</span>
+            <span>{cls.studentCount} دانش‌آموز</span>
           </div>
           {cls.latestSession && (
             <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
@@ -203,7 +203,7 @@ export default function StudentClassesPage() {
             <Card>
               <CardContent className="text-center py-12">
                 <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50 text-[var(--muted-foreground)]" />
-                <p className="text-[var(--muted-foreground)] mb-2">هنوز در هیچ کلاسی ثبتنام نکردهاید</p>
+                <p className="text-[var(--muted-foreground)] mb-2">هنوز در هیچ کلاسی ثبت نام نکردهاید</p>
                 <div className="flex justify-center gap-3 mt-4">
                   <Link href="/classes">
                     <Button>
