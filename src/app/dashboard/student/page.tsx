@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { BookOpen, Calendar, FileText, CreditCard, UserCheck, Clock } from "lucide-react";
+import { BookOpen, Calendar, FileText, CreditCard, UserCheck, Clock, Globe, Sparkles } from "lucide-react";
 import Link from "next/link";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 import DashboardQuickCard from "@/components/ui/DashboardQuickCard";
@@ -119,6 +119,12 @@ export default function StudentDashboard() {
                             </div>
 
                             <div className="flex flex-wrap gap-3">
+                                <Link href="/classes">
+                                    <Button className="group relative overflow-hidden bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 hover:scale-105 transition-all duration-300">
+                                        <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
+                                        ثبت‌نام کلاس‌های عمومی
+                                    </Button>
+                                </Link>
                                 <Link href="/dashboard/student/classes">
                                     <Button className="bg-white text-emerald-700 hover:bg-white/90">
                                         کلاسهای من
