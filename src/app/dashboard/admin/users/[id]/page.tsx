@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { User, BookOpen, Calendar, TrendingUp, CheckCircle, XCircle, FileText, CreditCard } from "lucide-react";
@@ -69,11 +69,11 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
     const { id } = use(params);
     const { data: session } = useSession();
     const router = useRouter();
-    const searchParams = useSearchParams();
     const [userData, setUserData] = useState<UserData | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const backHref = searchParams.get("back") || undefined;
+    // Dynamic backHref based on role - always go to admin dashboard
+    const backHref = "/dashboard/admin";
 
     useEffect(() => {
         if (session?.user?.role !== "ADMIN") {

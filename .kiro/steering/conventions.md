@@ -25,6 +25,12 @@
 - All components accept a `className` prop merged via `tailwind-merge`
 - Match the visual style, spacing, and layout of existing dashboard pages for the same role
 
+## Back Navigation
+
+- Detail pages should use a static `backHref` pointing to the parent list/dashboard, not dynamic URL params
+- Example: `<DashboardHeader title="جزئیات کاربر" backHref="/dashboard/admin" />`
+- This ensures back button always works even when navigating from different pages
+
 ## Dates
 
 - Use `jalali-utils.ts` for **all** date formatting and logic — never use raw `Date` methods for display
