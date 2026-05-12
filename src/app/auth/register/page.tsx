@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -223,7 +223,19 @@ export default function RegisterPage() {
             });
             const data = await res.json();
             if (!res.ok) { setError(data.error || "خطا در ثبت‌نام"); return; }
-            router.push("/auth/login?registered=true");
+            // Auto-login after successful registration
+            const result = await signIn("credentials", {
+                phone,
+                password,
+                redirect: false,
+            });
+
+            if (result?.error) {
+                router.push("/auth/login?registered=true");
+            } else {
+                router.push("/dashboard");
+                router.refresh();
+            }
         } catch {
             setError("خطا در ثبت‌نام. لطفاً دوباره تلاش کنید");
         } finally {
@@ -461,6 +473,13 @@ export default function RegisterPage() {
                     {/* ── STEP 2 ── */}
                     {step === 2 && (
                         <form onSubmit={handleStep2Submit} className="space-y-5">
+                            {/* Hidden phone field for password manager to associate username with password */}
+                            <input
+                                type="hidden"
+                                name="username"
+                                value={phone}
+                                autoComplete="username"
+                            />
                             {/* OTP notice */}
                             <div className="p-3.5 rounded-xl bg-[var(--primary-50)] border border-[var(--primary-100)] text-[var(--primary-700)] text-sm leading-relaxed">
                                 کد تایید به شماره{" "}
@@ -513,6 +532,7 @@ export default function RegisterPage() {
                                     <Input
                                         id="password"
                                         type={showPassword ? "text" : "password"}
+                                        autoComplete="new-password"
                                         placeholder="حداقل ۸ کاراکتر (حروف و اعداد)"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
@@ -571,6 +591,7 @@ export default function RegisterPage() {
                                     <Input
                                         id="confirmPassword"
                                         type={showConfirmPassword ? "text" : "password"}
+                                        autoComplete="new-password"
                                         placeholder="رمز عبور را دوباره وارد کنید"
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
