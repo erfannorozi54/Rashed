@@ -230,12 +230,18 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
                 )}
               </div>
               {classData.enrollmentStatus === "PENDING_PAYMENT" && classData.payment && (
-                <Link href={`/payment/mock?payment_id=${classData.payment.id}`}>
-                  <Button size="sm">
-                    <CreditCard className="h-4 w-4 ml-1" />
-                    پرداخت {classData.payment.amount.toLocaleString("fa-IR")} تومان
-                  </Button>
-                </Link>
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    const res = await fetch(`/api/payments/${classData.payment!.id}/pay`, { method: "POST" });
+                    const data = await res.json();
+                    if (data.redirectUrl) window.location.href = data.redirectUrl;
+                    else alert(data.error || "خطا در اتصال به درگاه");
+                  }}
+                >
+                  <CreditCard className="h-4 w-4 ml-1" />
+                  پرداخت {classData.payment.amount.toLocaleString("fa-IR")} تومان
+                </Button>
               )}
             </div>
           </CardContent>

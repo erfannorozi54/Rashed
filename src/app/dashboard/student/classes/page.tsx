@@ -115,12 +115,19 @@ function ClassCard({ cls }: { cls: Class }) {
               <p className="text-sm text-amber-800 mb-2">
                 در انتظار پرداخت: {cls.payment.amount.toLocaleString("fa-IR")} تومان
               </p>
-              <Link href={`/payment/mock?payment_id=${cls.payment.id}`}>
-                <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white w-full">
-                  <CreditCard className="h-4 w-4 ml-1" />
-                  پرداخت
-                </Button>
-              </Link>
+              <Button
+                size="sm"
+                className="bg-amber-600 hover:bg-amber-700 text-white w-full"
+                onClick={async () => {
+                  const res = await fetch(`/api/payments/${cls.payment!.id}/pay`, { method: "POST" });
+                  const data = await res.json();
+                  if (data.redirectUrl) window.location.href = data.redirectUrl;
+                  else alert(data.error || "خطا در اتصال به درگاه");
+                }}
+              >
+                <CreditCard className="h-4 w-4 ml-1" />
+                پرداخت
+              </Button>
             </div>
           )}
         </CardContent>
