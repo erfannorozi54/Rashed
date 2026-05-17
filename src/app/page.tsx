@@ -465,83 +465,48 @@ export default function HomePage() {
         </section>
 
         {/* Footer */}
-        <footer className="bg-[var(--foreground)] text-white py-16">
+        <footer className="bg-[var(--foreground)] text-white py-8">
           <div className="container mx-auto px-4 lg:px-8">
-            <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               <div className="lg:col-span-2">
-                <div className="mb-6">
-                  <Logo width={160} height={89} inverted className="h-12 w-auto mb-2" />
-                  <p className="text-sm text-gray-400">
-                    مرکز تخصصی ریاضیات تبریز
-                  </p>
+                <div className="mb-3">
+                  <Logo width={120} height={67} inverted className="h-8 w-auto mb-1" />
+                  <p className="text-xs text-gray-400">مرکز تخصصی ریاضیات تبریز</p>
                 </div>
-                <p className="text-gray-400 mb-4 max-w-md">
-                  بهترین آموزشگاه ریاضی در تبریز با بیش از ۱۰ سال سابقه در آموزش
-                  ریاضی به دانش‌آموزان تمام مقاطع
+                <p className="text-gray-400 text-sm mb-2 max-w-md">
+                  بهترین آموزشگاه ریاضی در تبریز با بیش از ۱۰ سال سابقه در آموزش ریاضی به دانش‌آموزان تمام مقاطع
                 </p>
-                <p className="text-gray-400 text-sm flex items-center gap-2">
-                  <span className="text-lg">📍</span>
-                  تبریز، آذربایجان شرقی
+                <p className="text-gray-400 text-sm flex items-center gap-1">
+                  <span>📍</span> تبریز، آذربایجان شرقی
                 </p>
               </div>
 
               <div>
-                <h3 className="font-semibold text-lg mb-6">خدمات آموزشی</h3>
-                <ul className="space-y-3 text-gray-400">
-                  <li className="hover:text-white transition-colors cursor-pointer">
-                    کلاس خصوصی ریاضی
-                  </li>
-                  <li className="hover:text-white transition-colors cursor-pointer">
-                    آموزش ریاضی آنلاین
-                  </li>
-                  <li className="hover:text-white transition-colors cursor-pointer">
-                    کلاس یوس (YOS)
-                  </li>
-                  <li className="hover:text-white transition-colors cursor-pointer">
-                    آمادگی کنکور ریاضی
-                  </li>
-                  <li className="hover:text-white transition-colors cursor-pointer">
-                    المپیاد ریاضی
-                  </li>
+                <h3 className="font-semibold text-sm mb-3">خدمات آموزشی</h3>
+                <ul className="space-y-1.5 text-sm text-gray-400">
+                  <li className="hover:text-white transition-colors cursor-pointer">کلاس خصوصی ریاضی</li>
+                  <li className="hover:text-white transition-colors cursor-pointer">آموزش ریاضی آنلاین</li>
+                  <li className="hover:text-white transition-colors cursor-pointer">کلاس یوس (YOS)</li>
+                  <li className="hover:text-white transition-colors cursor-pointer">آمادگی کنکور ریاضی</li>
+                  <li className="hover:text-white transition-colors cursor-pointer">المپیاد ریاضی</li>
                 </ul>
               </div>
 
               <div>
-                <h3 className="font-semibold text-lg mb-6">دسترسی سریع</h3>
-                <ul className="space-y-3 text-gray-400">
-                  <li>
-                    <Link
-                      href="/blogs"
-                      className="hover:text-white transition-colors"
-                    >
-                      بلاگ آموزشی
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/auth/login"
-                      className="hover:text-white transition-colors"
-                    >
-                      ورود به سیستم
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/auth/register"
-                      className="hover:text-white transition-colors"
-                    >
-                      ثبت‌نام
-                    </Link>
-                  </li>
+                <h3 className="font-semibold text-sm mb-3">دسترسی سریع</h3>
+                <ul className="space-y-1.5 text-sm text-gray-400">
+                  <li><Link href="/blogs" className="hover:text-white transition-colors">بلاگ آموزشی</Link></li>
+                  <li><Link href="/auth/login" className="hover:text-white transition-colors">ورود به سیستم</Link></li>
+                  <li><Link href="/auth/register" className="hover:text-white transition-colors">ثبت‌نام</Link></li>
                 </ul>
-                <div className="mt-6">
-                  <p className="text-gray-400 text-sm">ایمیل:</p>
-                  <p className="text-white">support@academy-rashed.ir</p>
+                <div className="mt-3">
+                  <p className="text-gray-400 text-xs">ایمیل:</p>
+                  <p className="text-white text-sm">support@academy-rashed.ir</p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-gray-500 text-sm">
+            <div className="mt-6 pt-4 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-gray-500 text-xs">
               <p>© ۱۴۰۳ آموزشگاه ریاضی راشد تبریز. تمامی حقوق محفوظ است.</p>
               <div className="flex items-center gap-2">
                 <a
@@ -554,11 +519,10 @@ export default function HomePage() {
                     referrerPolicy="origin"
                     src="/api/enamad-logo"
                     alt="اینماد"
-                    style={{ cursor: "pointer" }}
+                    style={{ cursor: "pointer", height: 40 }}
                     data-code="ox1vsnxyEfEQIT9YEy7YjjWvSikf3agS"
                   />
                 </a>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <a
                   onClick={() => window.open("https://panel.aqayepardakht.ir/trustGateway/82043", undefined, "width=400,height=600,scrollbars=no,resizable=no")}
                   href="javascript:void(0)"
@@ -569,7 +533,7 @@ export default function HomePage() {
                   <img
                     src="https://cdn.aqayepardakht.ir/trustlogo/1.svg"
                     alt="پرداخت امن آقای پرداخت"
-                    style={{ borderRadius: 0, marginRight: 10 }}
+                    style={{ height: 40 }}
                   />
                 </a>
               </div>
