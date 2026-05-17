@@ -521,7 +521,7 @@ export default function HomePage() {
                       referrerPolicy="origin"
                       src="/api/enamad-logo"
                       alt="اینماد"
-                      style={{ cursor: "pointer", height: 72 }}
+                      style={{ cursor: "pointer", height: 130 }}
                       data-code="ox1vsnxyEfEQIT9YEy7YjjWvSikf3agS"
                     />
                   </a>
@@ -535,7 +535,7 @@ export default function HomePage() {
                     <img
                       src="https://cdn.aqayepardakht.ir/trustlogo/1.svg"
                       alt="پرداخت امن آقای پرداخت"
-                      style={{ height: 72 }}
+                      style={{ height: 130 }}
                     />
                   </a>
                 </div>
