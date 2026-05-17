@@ -470,10 +470,10 @@ export default function HomePage() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               <div className="lg:col-span-2">
                 <div className="mb-3">
-                  <Logo width={120} height={67} inverted className="h-8 w-auto mb-1" />
-                  <p className="text-xs text-gray-400">مرکز تخصصی ریاضیات تبریز</p>
+                  <Logo width={140} height={78} inverted className="h-10 w-auto mb-1" />
+                  <p className="text-sm text-gray-400">مرکز تخصصی ریاضیات تبریز</p>
                 </div>
-                <p className="text-gray-400 text-sm mb-2 max-w-md">
+                <p className="text-gray-400 text-base mb-2 max-w-md">
                   بهترین آموزشگاه ریاضی در تبریز با بیش از ۱۰ سال سابقه در آموزش ریاضی به دانش‌آموزان تمام مقاطع
                 </p>
                 <p className="text-gray-400 text-sm flex items-center gap-1">
@@ -482,8 +482,8 @@ export default function HomePage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-sm mb-3">خدمات آموزشی</h3>
-                <ul className="space-y-1.5 text-sm text-gray-400">
+                <h3 className="font-semibold text-base mb-3">خدمات آموزشی</h3>
+                <ul className="space-y-2 text-base text-gray-400">
                   <li className="hover:text-white transition-colors cursor-pointer">کلاس خصوصی ریاضی</li>
                   <li className="hover:text-white transition-colors cursor-pointer">آموزش ریاضی آنلاین</li>
                   <li className="hover:text-white transition-colors cursor-pointer">کلاس یوس (YOS)</li>
@@ -493,22 +493,22 @@ export default function HomePage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-sm mb-3">دسترسی سریع</h3>
-                <ul className="space-y-1.5 text-sm text-gray-400">
+                <h3 className="font-semibold text-base mb-3">دسترسی سریع</h3>
+                <ul className="space-y-2 text-base text-gray-400">
                   <li><Link href="/blogs" className="hover:text-white transition-colors">بلاگ آموزشی</Link></li>
                   <li><Link href="/auth/login" className="hover:text-white transition-colors">ورود به سیستم</Link></li>
                   <li><Link href="/auth/register" className="hover:text-white transition-colors">ثبت‌نام</Link></li>
                 </ul>
                 <div className="mt-3">
-                  <p className="text-gray-400 text-xs">ایمیل:</p>
-                  <p className="text-white text-sm">support@academy-rashed.ir</p>
+                  <p className="text-gray-400 text-sm">ایمیل:</p>
+                  <p className="text-white text-base">support@academy-rashed.ir</p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-gray-500 text-xs">
+            <div className="mt-6 pt-4 border-t border-gray-800 flex flex-row items-center justify-between gap-4 text-gray-500 text-sm flex-wrap">
               <p>© ۱۴۰۳ آموزشگاه ریاضی راشد تبریز. تمامی حقوق محفوظ است.</p>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <a
                   referrerPolicy="origin"
                   target="_blank"
@@ -519,7 +519,7 @@ export default function HomePage() {
                     referrerPolicy="origin"
                     src="/api/enamad-logo"
                     alt="اینماد"
-                    style={{ cursor: "pointer", height: 40 }}
+                    style={{ cursor: "pointer", height: 52 }}
                     data-code="ox1vsnxyEfEQIT9YEy7YjjWvSikf3agS"
                   />
                 </a>
@@ -533,7 +533,7 @@ export default function HomePage() {
                   <img
                     src="https://cdn.aqayepardakht.ir/trustlogo/1.svg"
                     alt="پرداخت امن آقای پرداخت"
-                    style={{ height: 40 }}
+                    style={{ height: 52 }}
                   />
                 </a>
               </div>
