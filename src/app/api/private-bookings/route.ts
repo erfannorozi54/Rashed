@@ -10,6 +10,25 @@ function timeToMin(t: string): number {
     return h * 60 + m;
 }
 
+async function createGatewayRedirect(paymentId: string, amount: number): Promise<string> {
+    const baseUrl = process.env.NEXTAUTH_URL!;
+    const callbackUrl = `${baseUrl}/api/payments/callback?payment_id=${paymentId}`;
+    const res = await fetch("https://panel.aqayepardakht.ir/api/v2/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            pin: process.env.AQAYEPARDAKHT_PIN,
+            amount,
+            callback: callbackUrl,
+            callback_method: "GET",
+            invoice_id: paymentId,
+        }),
+    });
+    const data = await res.json();
+    if (data.status !== "success") throw new Error(`gateway error: ${data.code}`);
+    return `https://panel.aqayepardakht.ir/startpay/${data.transid}`;
+}
+
 
 export async function GET() {
     try {
@@ -136,7 +155,7 @@ export async function POST(request: NextRequest) {
         });
 
         const redirectUrl = result.payment
-            ? `/payment/mock?payment_id=${result.payment.id}`
+            ? await createGatewayRedirect(result.payment.id, result.payment.amount)
             : `/dashboard/student/classes`;
 
         return NextResponse.json({ redirectUrl }, { status: 201 });

@@ -188,7 +188,7 @@ export default function HomePage() {
                     variant="outline"
                     className="w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 border-2 bg-white/50 backdrop-blur-sm hover:bg-white/80"
                   >
-                    مشاهده کلاسها
+                   ثبت نام در کلاس‌های عمومی
                   </Button>
                 </Link>
               </div>
@@ -543,20 +543,36 @@ export default function HomePage() {
 
             <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-gray-500 text-sm">
               <p>© ۱۴۰۳ آموزشگاه ریاضی راشد تبریز. تمامی حقوق محفوظ است.</p>
-              <a
-                referrerPolicy="origin"
-                target="_blank"
-                href="https://trustseal.enamad.ir/?id=710295&Code=ox1vsnxyEfEQIT9YEy7YjjWvSikf3agS"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+              <div className="flex items-center gap-2">
+                <a
                   referrerPolicy="origin"
-                  src="/api/enamad-logo"
-                  alt="اینماد"
-                  style={{ cursor: "pointer" }}
-                  data-code="ox1vsnxyEfEQIT9YEy7YjjWvSikf3agS"
-                />
-              </a>
+                  target="_blank"
+                  href="https://trustseal.enamad.ir/?id=710295&Code=ox1vsnxyEfEQIT9YEy7YjjWvSikf3agS"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    referrerPolicy="origin"
+                    src="/api/enamad-logo"
+                    alt="اینماد"
+                    style={{ cursor: "pointer" }}
+                    data-code="ox1vsnxyEfEQIT9YEy7YjjWvSikf3agS"
+                  />
+                </a>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <a
+                  onClick={() => window.open("https://panel.aqayepardakht.ir/trustGateway/82043", undefined, "width=400,height=600,scrollbars=no,resizable=no")}
+                  href="javascript:void(0)"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  title="پرداخت امن آقای پرداخت"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="https://cdn.aqayepardakht.ir/trustlogo/1.svg"
+                    alt="پرداخت امن آقای پرداخت"
+                    style={{ borderRadius: 0, marginRight: 10 }}
+                  />
+                </a>
+              </div>
             </div>
           </div>
         </footer>

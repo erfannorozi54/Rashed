@@ -1,65 +1,65 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 
-export async function POST(request: NextRequest) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
-        }
+// GET — called by aqayepardakht gateway after payment
+export async function GET(request: NextRequest) {
+    const { searchParams } = new URL(request.url);
+    const paymentId = searchParams.get("payment_id");
+    const transid = searchParams.get("transid");
+    const status = searchParams.get("status"); // "1" = success, "0" = fail
 
-        const body = await request.json();
-        const { paymentId, status } = body;
-
-        if (!paymentId || !["success", "failed"].includes(status)) {
-            return NextResponse.json({ error: "اطلاعات نامعتبر" }, { status: 400 });
-        }
-
-        const payment = await prisma.payment.findUnique({
-            where: { id: paymentId },
-            include: { enrollment: true },
-        });
-
-        if (!payment) {
-            return NextResponse.json({ error: "پرداخت یافت نشد" }, { status: 404 });
-        }
-
-        // Must own the payment
-        if (payment.studentId !== session.user.id) {
-            return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
-        }
-
-        if (status === "success") {
-            await prisma.$transaction([
-                prisma.payment.update({
-                    where: { id: paymentId },
-                    data: { status: "SUCCESS", paidAt: new Date() },
-                }),
-                prisma.classEnrollment.update({
-                    where: { id: payment.enrollmentId },
-                    data: { status: "ENROLLED", paidAmount: payment.amount },
-                }),
-            ]);
-
-            return NextResponse.json(
-                { success: true, enrollmentStatus: "ENROLLED" },
-                { status: 200 }
-            );
-        } else {
-            await prisma.payment.update({
-                where: { id: paymentId },
-                data: { status: "FAILED" },
-            });
-
-            return NextResponse.json(
-                { success: false, enrollmentStatus: "PENDING_PAYMENT" },
-                { status: 200 }
-            );
-        }
-    } catch (error) {
-        console.error("Payment callback error:", error);
-        return NextResponse.json({ error: "خطا در پردازش پرداخت" }, { status: 500 });
+    if (!paymentId || !transid) {
+        return NextResponse.redirect(new URL("/payment/callback?status=failed", request.url));
     }
+
+    const payment = await prisma.payment.findUnique({
+        where: { id: paymentId },
+        include: { enrollment: true },
+    });
+
+    if (!payment) {
+        return NextResponse.redirect(new URL("/payment/callback?status=failed", request.url));
+    }
+
+    // Skip verify if gateway already says failed
+    if (status !== "1") {
+        await prisma.payment.update({ where: { id: paymentId }, data: { status: "FAILED" } });
+        return NextResponse.redirect(
+            new URL(`/payment/callback?status=failed&payment_id=${paymentId}`, request.url)
+        );
+    }
+
+    // Verify with gateway
+    const verifyRes = await fetch("https://panel.aqayepardakht.ir/api/v2/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            pin: process.env.AQAYEPARDAKHT_PIN,
+            amount: payment.amount,
+            transid,
+        }),
+    });
+
+    const verifyData = await verifyRes.json();
+
+    if (verifyData.status === "success" && (verifyData.code === "1" || verifyData.code === 1)) {
+        await prisma.$transaction([
+            prisma.payment.update({
+                where: { id: paymentId },
+                data: { status: "SUCCESS", paidAt: new Date() },
+            }),
+            prisma.classEnrollment.update({
+                where: { id: payment.enrollmentId },
+                data: { status: "ENROLLED", paidAmount: payment.amount },
+            }),
+        ]);
+        return NextResponse.redirect(
+            new URL(`/payment/callback?status=success&payment_id=${paymentId}`, request.url)
+        );
+    }
+
+    await prisma.payment.update({ where: { id: paymentId }, data: { status: "FAILED" } });
+    return NextResponse.redirect(
+        new URL(`/payment/callback?status=failed&payment_id=${paymentId}`, request.url)
+    );
 }

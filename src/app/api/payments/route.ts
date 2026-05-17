@@ -119,10 +119,32 @@ export async function POST(request: NextRequest) {
             },
         });
 
+        const baseUrl = process.env.NEXTAUTH_URL!;
+        const callbackUrl = `${baseUrl}/api/payments/callback?payment_id=${payment.id}`;
+
+        const gwRes = await fetch("https://panel.aqayepardakht.ir/api/v2/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                pin: process.env.AQAYEPARDAKHT_PIN,
+                amount: paymentAmount,
+                callback: callbackUrl,
+                callback_method: "GET",
+                invoice_id: payment.id,
+            }),
+        });
+
+        const gwData = await gwRes.json();
+        if (gwData.status !== "success") {
+            await prisma.payment.update({ where: { id: payment.id }, data: { status: "FAILED" } });
+            await prisma.classEnrollment.update({ where: { id: enrollment.id }, data: { status: "PENDING_PAYMENT" } });
+            return NextResponse.json({ error: `خطای درگاه: ${gwData.code}` }, { status: 502 });
+        }
+
         return NextResponse.json(
             {
                 paymentId: payment.id,
-                redirectUrl: `/payment/mock?payment_id=${payment.id}`,
+                redirectUrl: `https://panel.aqayepardakht.ir/startpay/${gwData.transid}`,
             },
             { status: 201 }
         );
