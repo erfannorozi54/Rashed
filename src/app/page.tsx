@@ -467,13 +467,13 @@ export default function HomePage() {
         {/* Footer */}
         <footer className="bg-[var(--foreground)] text-white py-8">
           <div className="container mx-auto px-4 lg:px-8">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-              <div className="lg:col-span-2">
-                <div className="mb-3">
-                  <Logo width={140} height={78} inverted className="h-10 w-auto mb-1" />
-                  <p className="text-sm text-gray-400">مرکز تخصصی ریاضیات تبریز</p>
-                </div>
-                <p className="text-gray-400 text-base mb-2 max-w-md">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+
+              {/* Col 1 — Brand */}
+              <div>
+                <Logo width={140} height={78} inverted className="h-10 w-auto mb-2" />
+                <p className="text-sm text-gray-400 mb-3">مرکز تخصصی ریاضیات تبریز</p>
+                <p className="text-gray-400 text-sm leading-relaxed mb-3">
                   بهترین آموزشگاه ریاضی در تبریز با بیش از ۱۰ سال سابقه در آموزش ریاضی به دانش‌آموزان تمام مقاطع
                 </p>
                 <p className="text-gray-400 text-sm flex items-center gap-1">
@@ -481,9 +481,10 @@ export default function HomePage() {
                 </p>
               </div>
 
+              {/* Col 2 — Services */}
               <div>
-                <h3 className="font-semibold text-base mb-3">خدمات آموزشی</h3>
-                <ul className="space-y-2 text-base text-gray-400">
+                <h3 className="font-semibold text-base mb-4">خدمات آموزشی</h3>
+                <ul className="space-y-2 text-sm text-gray-400">
                   <li className="hover:text-white transition-colors cursor-pointer">کلاس خصوصی ریاضی</li>
                   <li className="hover:text-white transition-colors cursor-pointer">آموزش ریاضی آنلاین</li>
                   <li className="hover:text-white transition-colors cursor-pointer">کلاس یوس (YOS)</li>
@@ -492,51 +493,58 @@ export default function HomePage() {
                 </ul>
               </div>
 
+              {/* Col 3 — Quick links */}
               <div>
-                <h3 className="font-semibold text-base mb-3">دسترسی سریع</h3>
-                <ul className="space-y-2 text-base text-gray-400">
+                <h3 className="font-semibold text-base mb-4">دسترسی سریع</h3>
+                <ul className="space-y-2 text-sm text-gray-400">
                   <li><Link href="/blogs" className="hover:text-white transition-colors">بلاگ آموزشی</Link></li>
                   <li><Link href="/auth/login" className="hover:text-white transition-colors">ورود به سیستم</Link></li>
                   <li><Link href="/auth/register" className="hover:text-white transition-colors">ثبت‌نام</Link></li>
                 </ul>
-                <div className="mt-3">
-                  <p className="text-gray-400 text-sm">ایمیل:</p>
-                  <p className="text-white text-base">support@academy-rashed.ir</p>
+                <div className="mt-4">
+                  <p className="text-gray-400 text-xs mb-0.5">ایمیل:</p>
+                  <p className="text-white text-sm">support@academy-rashed.ir</p>
                 </div>
               </div>
+
+              {/* Col 4 — Trust badges */}
+              <div>
+                <h3 className="font-semibold text-base mb-4">نمادهای اعتماد</h3>
+                <div className="flex flex-col gap-4">
+                  <a
+                    referrerPolicy="origin"
+                    target="_blank"
+                    href="https://trustseal.enamad.ir/?id=710295&Code=ox1vsnxyEfEQIT9YEy7YjjWvSikf3agS"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      referrerPolicy="origin"
+                      src="/api/enamad-logo"
+                      alt="اینماد"
+                      style={{ cursor: "pointer", height: 72 }}
+                      data-code="ox1vsnxyEfEQIT9YEy7YjjWvSikf3agS"
+                    />
+                  </a>
+                  <a
+                    onClick={() => window.open("https://panel.aqayepardakht.ir/trustGateway/82043", undefined, "width=400,height=600,scrollbars=no,resizable=no")}
+                    href="javascript:void(0)"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    title="پرداخت امن آقای پرداخت"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="https://cdn.aqayepardakht.ir/trustlogo/1.svg"
+                      alt="پرداخت امن آقای پرداخت"
+                      style={{ height: 72 }}
+                    />
+                  </a>
+                </div>
+              </div>
+
             </div>
 
-            <div className="mt-6 pt-4 border-t border-gray-800 flex flex-row items-center justify-between gap-4 text-gray-500 text-sm flex-wrap">
+            <div className="mt-6 pt-4 border-t border-gray-800 text-center text-gray-500 text-sm">
               <p>© ۱۴۰۳ آموزشگاه ریاضی راشد تبریز. تمامی حقوق محفوظ است.</p>
-              <div className="flex items-center gap-3">
-                <a
-                  referrerPolicy="origin"
-                  target="_blank"
-                  href="https://trustseal.enamad.ir/?id=710295&Code=ox1vsnxyEfEQIT9YEy7YjjWvSikf3agS"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    referrerPolicy="origin"
-                    src="/api/enamad-logo"
-                    alt="اینماد"
-                    style={{ cursor: "pointer", height: 52 }}
-                    data-code="ox1vsnxyEfEQIT9YEy7YjjWvSikf3agS"
-                  />
-                </a>
-                <a
-                  onClick={() => window.open("https://panel.aqayepardakht.ir/trustGateway/82043", undefined, "width=400,height=600,scrollbars=no,resizable=no")}
-                  href="javascript:void(0)"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  title="پرداخت امن آقای پرداخت"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="https://cdn.aqayepardakht.ir/trustlogo/1.svg"
-                    alt="پرداخت امن آقای پرداخت"
-                    style={{ height: 52 }}
-                  />
-                </a>
-              </div>
             </div>
           </div>
         </footer>
