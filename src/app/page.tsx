@@ -510,7 +510,7 @@ export default function HomePage() {
               {/* Col 4 — Trust badges */}
               <div>
                 <h3 className="font-semibold text-base mb-4">نمادهای اعتماد</h3>
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-row gap-4 items-center flex-wrap">
                   <a
                     referrerPolicy="origin"
                     target="_blank"
