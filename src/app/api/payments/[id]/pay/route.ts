@@ -15,7 +15,7 @@ export async function POST(
 
     if (!payment) return NextResponse.json({ error: "پرداخت یافت نشد" }, { status: 404 });
     if (payment.studentId !== session.user.id) return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
-    if (payment.status !== "PENDING") return NextResponse.json({ error: "این پرداخت قابل پردازش نیست" }, { status: 400 });
+    if (!["PENDING", "FAILED"].includes(payment.status)) return NextResponse.json({ error: "این پرداخت قابل پردازش نیست" }, { status: 400 });
 
     const baseUrl = process.env.NEXTAUTH_URL!;
     const callbackUrl = `${baseUrl}/api/payments/callback?payment_id=${payment.id}`;
