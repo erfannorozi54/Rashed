@@ -1,73 +1,55 @@
 # AGENTS.md — Rashed
 
-Full-stack educational platform for a math school. Next.js 16 (App Router), React 19, TypeScript, PostgreSQL via Prisma.
+Full-stack educational platform (math school). Next.js 16 App Router, React 19, TypeScript, PostgreSQL via Prisma with PrismaPg adapter + raw `pg` pool.
 
 ---
 
 ## Setup
 
 ```bash
-docker-compose up -d          # PostgreSQL (port 5432) + app container
+docker-compose up -d db       # PostgreSQL on port 5432
 npm install
 npx prisma migrate dev
 npm run dev                   # dev server on port 3001
 ```
 
-**`POSTGRES_PASSWORD`** must be set in `.env` (read by `docker-compose.yml`). Full `.env` (see `.env.example`):
-
-```
-POSTGRES_PASSWORD=<postgres password>
-DATABASE_URL="postgresql://postgres:<password>@localhost:5432/rashed_db"
-NEXTAUTH_SECRET=<secret>
-NEXTAUTH_URL="http://localhost:3001"
-SMSIR_API_KEY=<sms api key>
-SMSIR_TEMPLATE_ID=<sms template>
-ADMIN_PHONE=<admin phone for seed>
-ADMIN_PASSWORD=<admin password for seed>
-ADMIN_NAME=فاطمه مقصودی
-AQAYEPARDAKHT_PIN=<payment gateway>
-```
+`.env` — see `.env.example`. `POSTGRES_PASSWORD` is required by `docker-compose.yml`.
 
 ---
 
-## Prisma — Non-Standard Setup
+## Prisma — Non-Standard
 
-- Uses **PrismaPg adapter** with raw `pg` pool (`src/lib/prisma.ts`). Import `prisma` from `@/lib/prisma`, never instantiate `PrismaClient` elsewhere.
-- Schema: `prisma/schema.prisma`. New types/models go there.
-- Workflow: edit schema → `npx prisma migrate dev --name <name>` → `npx prisma generate`.
-- Seed script at `prisma/seed.ts` creates the initial admin user.
-- DB browser: `npx prisma studio`.
+Uses **PrismaPg adapter** with raw `pg` Pool (`src/lib/prisma.ts`). Import `prisma` from `@/lib/prisma` — never instantiate `PrismaClient` elsewhere. Workflow: edit schema → `npx prisma migrate dev --name X` → `npx prisma generate`. Seed: `tsx prisma/seed.ts`. Browser: `npx prisma studio`.
 
 ---
 
 ## Auth & Middleware
 
-- NextAuth 4, credentials provider (phone + bcrypt password) or OTP. Auth route: `src/app/api/auth/[...nextauth]/route.ts`.
-- Middleware (`src/proxy.ts`) protects `/dashboard/*`. Matches on `withAuth`, redirects unauthenticated to `/auth/login`.
-- JWT extended via `src/types/next-auth.d.ts`: user has `id`, `role`, `email`, `name`.
-- OTP SMS is mocked during dev (logs to console).
+- NextAuth 4 (credentials: phone+bcrypt or OTP). Route: `src/app/api/auth/[...nextauth]/route.ts`.
+- Middleware at `src/proxy.ts` protects `/dashboard/*` via `withAuth`, redirects to `/auth/login`.
+- JWT extended (`src/types/next-auth.d.ts`): `id`, `role`, `email`, `name`.
+- OTP SMS mocked in dev (logs to console).
 
 ---
 
 ## Key Conventions
 
 ### Data fetching
-- API routes: `src/app/api/[resource]/route.ts` (collection) and `[resource]/[id]/route.ts` (item).
-- API auth pattern: `getServerSession` → check `session.user.role` → return `NextResponse.json()`.
-- Pages fetch inline with `useEffect` + `fetch` or as server components — match the surrounding page.
+- API: `src/app/api/[resource]/route.ts` (collection) and `[resource]/[id]/route.ts` (item).
+- Auth pattern: `getServerSession` → check `session.user.role` → `NextResponse.json()`.
+- Client pages: `useEffect` + `fetch` or server components — match surrounding page.
 
 ### Components
-- Reusable UI in `src/components/ui/` — always check here before creating new components.
-- Every component accepts `className` merged via `tailwind-merge`.
-- Use `clsx` + `tailwind-merge` for conditional classes. No template literals, no `@apply`, no custom CSS.
-- Dates: use `@/lib/jalali-utils` exclusively. Never display raw JavaScript dates.
+- Shared UI in `src/components/ui/` — check here first.
+- Accept `className` prop merged via `tailwind-merge`. Conditional classes: `clsx` + `tailwind-merge`. No template literals, no `@apply`, no custom CSS.
+- Dates: `@/lib/jalali-utils` only. Never raw `Date` display.
 
 ### Routing
-- Pages under `src/app/dashboard/[role]/` (admin, teacher, student).
-- Public pages: `src/app/auth/`, `src/app/blogs/`, `src/app/classes/`.
+- Dashboards: `src/app/dashboard/[role]/` (admin, teacher, student).
+- Public: `src/app/auth/`, `src/app/blogs/`, `src/app/classes/`.
 
 ### Styles
-- Tailwind CSS 4 via `@tailwindcss/postcss`. All utility classes in JSX.
+- Tailwind CSS 4 via `@tailwindcss/postcss`. Utility classes only in JSX.
 
 ---
 
@@ -77,52 +59,38 @@ AQAYEPARDAKHT_PIN=<payment gateway>
 |---------|-------------|
 | `npm run dev` | Dev server (port 3001) |
 | `npm run build` | Production build |
-| `npm run lint` | TypeScript only (`tsc --noEmit`). No eslint script. |
+| `npm run lint` | TypeScript check only (`tsc --noEmit` — no ESLint) |
 | `npx prisma migrate dev --name X` | Create & apply migration |
-| `npx prisma generate` | Regenerate client (after schema changes) |
+| `npx prisma generate` | Regenerate client |
 | `npx prisma db seed` | Run seed (creates admin user) |
 
 No test framework configured.
 
 ---
 
-## Database Models
+## Schema
 
-| Model | Purpose |
-|-------|---------|
-| `User` | All users — role, phone, email, password, OTP |
-| `Class` | Course definitions |
-| `ClassTeacher` / `ClassEnrollment` | Many-to-many joins |
-| `Session` | Class meetings (SCHEDULED or COMPENSATORY) |
-| `SessionContent` | Files/materials per session |
-| `Assignment` + `Submission` | Tasks with grade/feedback |
-| `Attendance` | Per-session records (PRESENT/ABSENT/LATE/EXCUSED) |
-| `Blog` | Teacher-authored posts |
+See `prisma/schema.prisma` — 17 models, 11 enums. Notable models beyond core CRUD: `TeacherAvailability`, `AvailabilityException`, `RefundRequest`, `SessionReschedule`, `TeacherSpecialization`, `PrivateBooking`.
+
+Path alias: `@/*` → `src/*`.
 
 ---
 
 ## VPS Deployment
 
-SSH alias: `ssh vps-ir`. VPS at 194.60.230.210, project at `/var/www/rashed`.
+SSH alias: `ssh vps-ir` (194.60.230.210). App at `/var/www/rashed`.
 **VPS has no internet** — use git bundle transfer.
 
 ```bash
-# Local: create bundle
-git add . && git commit -m "msg"
+# Local
 git bundle create /tmp/rashed-update.bundle HEAD
 scp /tmp/rashed-update.bundle vps-ir:/tmp/
 
-# VPS: apply bundle
+# VPS
 ssh vps-ir "cd /var/www/rashed && git pull /tmp/rashed-update.bundle main"
-
-# Copy source into container & rebuild
 ssh vps-ir "docker cp /var/www/rashed/src rashed_app:/app/"
 ssh vps-ir "docker exec rashed_app npm run build"
 ssh vps-ir "cd /var/www/rashed && docker compose restart app"
 ```
 
-If new dependencies added, also copy `package*.json` into container and run `npm install` (set Liara registry first).
-
-- Logs: `ssh vps-ir "docker compose logs app --tail=50"`
-- Rollback: `ssh vps-ir "cd /var/www/rashed && git reset --hard HEAD~1"` then rebuild
-- `.env` is not in git — restore manually if re-cloning
+If new deps added, also copy `package*.json` and run `npm install` in container (set Liara registry first). Logs: `docker compose logs app --tail=50`. Rollback: `git reset --hard HEAD~1` then rebuild. `.env` not in git — restore manually if re-cloning.
